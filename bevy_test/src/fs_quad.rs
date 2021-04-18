@@ -3,20 +3,12 @@ use bevy::render::mesh::{Mesh, Indices};
 use bevy::render::pipeline::PrimitiveTopology;
 
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, Default)]
 pub struct FsQuad {
-    /// The total side length of the square.
-    pub size: f32,
-}
-
-impl Default for FsQuad {
-    fn default() -> Self {
-        FsQuad { size: 1.0 }
-    }
 }
 
 impl From<FsQuad> for Mesh {
-    fn from(plane: FsQuad) -> Self {
+    fn from(_plane: FsQuad) -> Self {
         let vertices = [
             ([1.0, -1.0, 0.0], [0.0, 0.0, -1.0], [1.0, 1.0]),
             ([1.0, 1.0, 0.0], [0.0, 0.0, -1.0], [1.0, -1.0]),
