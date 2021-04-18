@@ -3,15 +3,14 @@ use std::borrow::Cow;
 use bevy::{
     prelude::*,
     ecs::component::Component,
-    reflect::TypeUuid,
     render::{
-        camera::{ActiveCameras, Camera, CameraProjection},
+        camera::{ActiveCameras},
         pass::{
             LoadOp, Operations, PassDescriptor, RenderPassColorAttachmentDescriptor,
             RenderPassDepthStencilAttachmentDescriptor, TextureAttachment,
         },
         render_graph::{
-            base::{node::MAIN_PASS, MainPass},
+            base::{node::MAIN_PASS},
             CameraNode, Node, PassNode, RenderGraph, ResourceSlotInfo,
         },
         renderer::{RenderResourceId, RenderResourceType},
@@ -19,10 +18,8 @@ use bevy::{
             Extent3d, SamplerDescriptor, TextureDescriptor, TextureDimension, TextureFormat,
             TextureUsage, SAMPLER_ASSET_INDEX, TEXTURE_ASSET_INDEX,
         },
-    },
-    window::WindowId,
+    }
 };
-use bevy::ecs::query::{WorldQuery, ReadOnlyFetch};
 
 pub const TEXTURE_NODE: &str = "texure_node";
 pub const DEPTH_TEXTURE_NODE: &str = "depth_texure_node";

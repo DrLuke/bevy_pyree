@@ -3,19 +3,7 @@ use bevy::{
     reflect::TypeUuid,
     render::{
         camera::{ActiveCameras, Camera, CameraProjection},
-        pass::{
-            LoadOp, Operations, PassDescriptor, RenderPassColorAttachmentDescriptor,
-            RenderPassDepthStencilAttachmentDescriptor, TextureAttachment,
-        },
-        render_graph::{
-            base::{node::MAIN_PASS, MainPass},
-            CameraNode, Node, PassNode, RenderGraph, ResourceSlotInfo,
-        },
-        renderer::{RenderResourceId, RenderResourceType},
-        texture::{
-            Extent3d, SamplerDescriptor, TextureDescriptor, TextureDimension, TextureFormat,
-            TextureUsage, SAMPLER_ASSET_INDEX, TEXTURE_ASSET_INDEX,
-        },
+        render_graph::{base::MainPass, RenderGraph},
     },
     window::WindowId,
 };
@@ -23,8 +11,6 @@ use bevy::{
 mod render_to_texture_pipeline;
 
 use render_to_texture_pipeline::{RenderToTextureGraphBuilder, RenderToTextureGraph};
-use bevy::ecs::component::Component;
-use bevy::asset::HandleId;
 
 pub const RENDER_TEXTURE_HANDLE_UNTYPED: HandleUntyped = HandleUntyped::weak_from_u64(Texture::TYPE_UUID, 13378939762009864029);
 
@@ -154,12 +140,12 @@ fn main() {
         let mut active_cameras = world_cell.get_resource_mut::<ActiveCameras>().unwrap();
 
         // Add each texture render pass
-        render_graph.add_render_to_texture_graph::<MyPass>(&mut active_cameras, &RenderToTextureGraph{
+        render_graph.add_render_to_texture_graph::<MyPass>(&mut active_cameras, &RenderToTextureGraph {
             name: "test_pass",
             camera_name: FIRST_PASS_CAMERA,
             texture_handle: RENDER_TEXTURE_HANDLE_UNTYPED.typed::<Texture>(),
             width: 1920,
-            height: 1080
+            height: 1080,
         });
     }
 
