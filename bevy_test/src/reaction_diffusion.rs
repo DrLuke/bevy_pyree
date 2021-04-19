@@ -26,6 +26,7 @@ pub struct RdPass;
 #[derive(RenderResources, Default, TypeUuid)]
 #[uuid = "3bf9e364-f29d-4d6c-92cf-93298466c620"]
 pub struct RdMaterial {
+    texture: Handle<Texture>
 }
 
 pub fn setup(
@@ -71,7 +72,9 @@ pub fn setup(
         .add_node_edge("rd_material", [RD_GRAPH_NAME, FIRST_PASS].concat())
         .unwrap();
 
-    let material = materials.add(RdMaterial {});
+    let material = materials.add(RdMaterial {
+        texture: RD_RT_HANDLE.typed::<Texture>()
+    });
 
     // FS quad
     commands.spawn_bundle(MeshBundle {
