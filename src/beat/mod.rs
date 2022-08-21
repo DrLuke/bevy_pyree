@@ -2,6 +2,8 @@
 
 use bevy::prelude::*;
 
+mod osc_receiver;
+
 /// Resource that counts how many beats have been received
 #[derive(Component)]
 pub struct BeatCounter {
