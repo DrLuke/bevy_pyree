@@ -11,19 +11,23 @@ use bevy::{
         view::RenderLayers,
     },
 };
-use bevy_pyree::clip::Clip;
+use bevy_pyree::clip::{Clip, ClipRender};
 use bevy_pyree::clip::setup_clip_renderer;
 use bevy::render::camera::{Projection, ScalingMode};
+use bevy_egui::{egui, EguiContext, EguiPlugin};
+
 
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
+        .add_plugin(EguiPlugin)
         .add_startup_system(spawn_clip_1)
         .add_startup_system(spawn_clip_2)
         .add_startup_system(setup)
         .add_system(setup_clip_renderer)
         .add_system(cube_rotator_system)
         .add_system(rotator_system)
+        .add_system(gui)
         .run();
 }
 
@@ -198,4 +202,42 @@ fn cube_rotator_system(time: Res<Time>, mut query: Query<&mut Transform, With<Cl
         transform.rotate_x(1.0 * time.delta_seconds());
         transform.rotate_y(0.7 * time.delta_seconds());
     }
+}
+
+fn gui(
+    mut egui_context: ResMut<EguiContext>,
+    mut clip_render_query: Query<(Entity, &mut ClipRender, &Handle<StandardMaterial>)>,
+    mut clip_query: Query<&Clip>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+    mut commands: Commands,
+) {
+    let (entity, mut clip_render, mut material) = match clip_render_query.iter_mut().next() {
+        Some(c) => c,
+        None => {
+            egui::Window::new("Uh oh").show(egui_context.ctx_mut(), |ui| {
+                ui.label("No clip Renderer found");
+            });
+            return;
+        }
+    };
+
+    egui::Window::new("Clips").show(egui_context.ctx_mut(), |ui| {
+        for clip in clip_query.iter() {
+            let mut button = egui::Button::new(format!("Clip {}", clip.clip_layer));
+
+            if clip.render_target == clip_render.image {
+                button = button.frame(false);
+            }
+            if ui.add(button).clicked() {
+                clip_render.image = clip.render_target.clone();
+                commands.entity(entity).remove::<Handle<StandardMaterial>>();
+                let material_handle = materials.add(StandardMaterial {
+                    base_color_texture: Some(clip.render_target.clone()),
+                    unlit: true,
+                    ..default()
+                });
+                commands.entity(entity).insert(material_handle);
+            }
+        }
+    });
 }

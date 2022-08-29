@@ -12,3 +12,4 @@ bevy_rosc = "0.2"
 
 [dev-dependencies]
 bevy = { version = "0.8", default-features = true }
+bevy_egui = "0.16"

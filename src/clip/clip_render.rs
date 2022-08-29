@@ -20,8 +20,6 @@ pub fn setup_clip_renderer(
         None => return
     };
 
-    println!("Some");
-
     let clip_render = ClipRender { image: clip.render_target.clone() };
 
     let material_handle = materials.add(StandardMaterial {
