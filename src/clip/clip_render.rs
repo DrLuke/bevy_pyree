@@ -31,7 +31,7 @@ pub fn setup_clip_renderer(
     });
 
     let pbr_bundle = PbrBundle {
-        mesh: meshes.add(Mesh::from(shape::Plane { size: 400.0 })),
+        mesh: meshes.add(Mesh::from(shape::Plane { size: 2.0 })),
         material: material_handle,
         ..default()
     };

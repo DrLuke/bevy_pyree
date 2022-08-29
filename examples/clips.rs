@@ -13,7 +13,7 @@ use bevy::{
 };
 use bevy_pyree::clip::Clip;
 use bevy_pyree::clip::setup_clip_renderer;
-use bevy::render::camera::Projection;
+use bevy::render::camera::{Projection, ScalingMode};
 
 fn main() {
     App::new()
@@ -48,7 +48,7 @@ fn spawn_clip_1(
             width: 1920,
             height: 1080,
             ..default()
-        }
+        },
     );
 
     // Render layer
@@ -114,7 +114,7 @@ fn spawn_clip_2(
             width: 1920,
             height: 1080,
             ..default()
-        }
+        },
     );
 
     // Render layer
@@ -169,16 +169,16 @@ fn spawn_clip_2(
 
 fn setup(
     mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
-    mut images: ResMut<Assets<Image>>,
 ) {
-    commands.spawn_bundle(Camera3dBundle{
+    commands.spawn_bundle(Camera3dBundle {
         camera: Camera {
             priority: 1,
             ..default()
         },
-        projection: Projection::Orthographic(OrthographicProjection::default()),
+        projection: Projection::Orthographic(OrthographicProjection {
+            scaling_mode: ScalingMode::None,
+            ..default()
+        }),
         transform: Transform::from_translation(Vec3::new(0.0, 10.0, 0.0)).looking_at(Vec3::default(), Vec3::Z),
         ..default()
     });
