@@ -11,7 +11,7 @@ use bevy::{
         view::RenderLayers,
     },
 };
-use bevy_pyree::clip::{Clip, ClipRender};
+use bevy_pyree::clip::{Clip, ClipRender, Deck};
 use bevy_pyree::clip::setup_clip_renderer;
 use bevy::render::camera::{Projection, ScalingMode};
 use bevy_egui::{egui, EguiContext, EguiPlugin};
@@ -186,6 +186,8 @@ fn setup(
         transform: Transform::from_translation(Vec3::new(0.0, 10.0, 0.0)).looking_at(Vec3::default(), Vec3::Z),
         ..default()
     });
+
+    commands.insert_resource(Deck::default());
 }
 
 /// Rotates the inner cube (first pass)
@@ -207,9 +209,10 @@ fn cube_rotator_system(time: Res<Time>, mut query: Query<&mut Transform, With<Cl
 fn gui(
     mut egui_context: ResMut<EguiContext>,
     mut clip_render_query: Query<(Entity, &mut ClipRender, &Handle<StandardMaterial>)>,
-    mut clip_query: Query<&Clip>,
+    mut clip_query: Query<(Entity, &Clip)>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut commands: Commands,
+    mut deck: ResMut<Deck>,
 ) {
     let (entity, mut clip_render, mut material) = match clip_render_query.iter_mut().next() {
         Some(c) => c,
@@ -222,22 +225,20 @@ fn gui(
     };
 
     egui::Window::new("Clips").show(egui_context.ctx_mut(), |ui| {
-        for clip in clip_query.iter() {
-            let mut button = egui::Button::new(format!("Clip {}", clip.clip_layer));
+        for (indx, mut slot) in deck.slots.iter_mut().enumerate() {
+            ui.label(format!("Slot {}:", indx+1));
+            ui.horizontal(|ui| {
+                for (entity, clip) in clip_query.iter() {
+                    let mut button = egui::Button::new(format!("Clip {}", clip.clip_layer));
 
-            if clip.render_target == clip_render.image {
-                button = button.frame(false);
-            }
-            if ui.add(button).clicked() {
-                clip_render.image = clip.render_target.clone();
-                commands.entity(entity).remove::<Handle<StandardMaterial>>();
-                let material_handle = materials.add(StandardMaterial {
-                    base_color_texture: Some(clip.render_target.clone()),
-                    unlit: true,
-                    ..default()
-                });
-                commands.entity(entity).insert(material_handle);
-            }
+                    if slot.is_some() && slot.unwrap() == entity {
+                        button = button.frame(false);
+                    }
+                    if ui.add(button).clicked() {
+                        *slot = Some(entity);
+                    }
+                }
+            });
         }
     });
 }
