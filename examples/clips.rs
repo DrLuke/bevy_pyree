@@ -1,5 +1,6 @@
 //! Shows how to render to a texture. Useful for mirrors, UI, or exporting images.
 
+use std::ops::Deref;
 use bevy::{
     core_pipeline::clear_color::ClearColorConfig,
     prelude::*,
@@ -27,7 +28,8 @@ fn main() {
         .add_system(setup_clip_renderer)
         .add_system(cube_rotator_system)
         .add_system(rotator_system)
-        .add_system(gui)
+        .add_system(clip_selector_gui)
+        .add_system(deck_gui)
         .run();
 }
 
@@ -206,27 +208,14 @@ fn cube_rotator_system(time: Res<Time>, mut query: Query<&mut Transform, With<Cl
     }
 }
 
-fn gui(
+fn clip_selector_gui(
     mut egui_context: ResMut<EguiContext>,
-    mut clip_render_query: Query<(Entity, &mut ClipRender, &Handle<StandardMaterial>)>,
-    mut clip_query: Query<(Entity, &Clip)>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
-    mut commands: Commands,
+    clip_query: Query<(Entity, &Clip)>,
     mut deck: ResMut<Deck>,
 ) {
-    let (entity, mut clip_render, mut material) = match clip_render_query.iter_mut().next() {
-        Some(c) => c,
-        None => {
-            egui::Window::new("Uh oh").show(egui_context.ctx_mut(), |ui| {
-                ui.label("No clip Renderer found");
-            });
-            return;
-        }
-    };
-
-    egui::Window::new("Clips").show(egui_context.ctx_mut(), |ui| {
-        for (indx, mut slot) in deck.slots.iter_mut().enumerate() {
-            ui.label(format!("Slot {}:", indx+1));
+    egui::Window::new("Deck Clip selector").show(egui_context.ctx_mut(), |ui| {
+        for (indx, slot) in deck.slots.iter_mut().enumerate() {
+            ui.label(format!("Slot {}:", indx + 1));
             ui.horizontal(|ui| {
                 for (entity, clip) in clip_query.iter() {
                     let mut button = egui::Button::new(format!("Clip {}", clip.clip_layer));
@@ -240,5 +229,52 @@ fn gui(
                 }
             });
         }
+    });
+}
+
+fn deck_gui(
+    deck: ResMut<Deck>,
+    mut egui_context: ResMut<EguiContext>,
+    mut clip_render_query: Query<(Entity, &mut ClipRender)>,
+    clip_query: Query<&Clip>,
+    mut commands: Commands,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+) {
+    let (entity, mut clip_render) = match clip_render_query.iter_mut().next() {
+        Some(c) => c,
+        None => {
+            egui::Window::new("Uh oh").show(egui_context.ctx_mut(), |ui| {
+                ui.label("No clip Renderer found");
+            });
+            return;
+        }
+    };
+
+    let mut set_clip = |clip: &Clip, commands: &mut Commands, materials: &mut ResMut<Assets<StandardMaterial>>| {
+        clip_render.image = clip.render_target.clone();
+        commands.entity(entity).remove::<Handle<StandardMaterial>>();
+        let material_handle = materials.add(StandardMaterial {
+            base_color_texture: Some(clip.render_target.clone()),
+            unlit: true,
+            ..default()
+        });
+        commands.entity(entity).insert(material_handle);
+    };
+
+    egui::Window::new("Deck").show(egui_context.ctx_mut(), |ui| {
+        egui::Grid::new("some_unique_id").show(ui, |ui| {
+            if ui.button("Deck A").clicked() {
+                if deck.slots[0].is_some() {
+                    set_clip(clip_query.get(deck.slots[0].unwrap()).unwrap(), &mut commands, &mut materials);
+                }
+            }
+            ui.label("Fader hier");
+            if ui.button("Deck B").clicked() {
+                if deck.slots[1].is_some() {
+                    set_clip(clip_query.get(deck.slots[1].unwrap()).unwrap(), &mut commands, &mut materials);
+                }
+            }
+            ui.end_row();
+        });
     });
 }
