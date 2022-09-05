@@ -12,7 +12,7 @@ use bevy::{
         view::RenderLayers,
     },
 };
-use bevy_pyree::clip::{Clip, ClipRender, Deck};
+use bevy_pyree::clip::{Clip, ClipRender, Deck2};
 use bevy_pyree::clip::setup_clip_renderer;
 use bevy::render::camera::{Projection, ScalingMode};
 use bevy_egui::{egui, EguiContext, EguiPlugin};
@@ -189,7 +189,7 @@ fn setup(
         ..default()
     });
 
-    commands.insert_resource(Deck::default());
+    commands.insert_resource(Deck2::default());
 }
 
 /// Rotates the inner cube (first pass)
@@ -211,7 +211,7 @@ fn cube_rotator_system(time: Res<Time>, mut query: Query<&mut Transform, With<Cl
 fn clip_selector_gui(
     mut egui_context: ResMut<EguiContext>,
     clip_query: Query<(Entity, &Clip)>,
-    mut deck: ResMut<Deck>,
+    mut deck: ResMut<Deck2>,
 ) {
     egui::Window::new("Deck Clip selector").show(egui_context.ctx_mut(), |ui| {
         for (indx, slot) in deck.slots.iter_mut().enumerate() {
@@ -233,7 +233,7 @@ fn clip_selector_gui(
 }
 
 fn deck_gui(
-    deck: ResMut<Deck>,
+    deck: ResMut<Deck2>,
     mut egui_context: ResMut<EguiContext>,
     mut clip_render_query: Query<(Entity, &mut ClipRender)>,
     clip_query: Query<&Clip>,

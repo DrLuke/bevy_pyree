@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 
-/// Deck contains 4 slots for Clips/FX to mix together
+/// Simple crossfader with 2 slots
 #[derive(Default)]
-pub struct Deck {
-    pub slots: [Option<Entity>; 4],
+pub struct Deck2 {
+    pub slots: [Option<Entity>; 2],
 }
