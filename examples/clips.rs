@@ -12,25 +12,70 @@ use bevy::{
         view::RenderLayers,
     },
 };
-use bevy_pyree::clip::{Clip, ClipRender, Deck2};
+use bevy_pyree::clip::{Clip, ClipRender, Deck2, Deck2Material, DeckRenderer, extract_deck2, ExtractedCrossfade, prepare_deck2, setup_deck2};
 use bevy_pyree::clip::setup_clip_renderer;
 use bevy::render::camera::{Projection, ScalingMode};
+use bevy::render::{RenderApp, RenderStage};
+use bevy::render::extract_resource::ExtractResourcePlugin;
 use bevy_egui::{egui, EguiContext, EguiPlugin};
 
 
 fn main() {
-    App::new()
-        .add_plugins(DefaultPlugins)
+    let mut app = App::new();
+    app.add_plugins(DefaultPlugins)
         .add_plugin(EguiPlugin)
+        .add_plugin(MaterialPlugin::<Deck2Material>::default())
+        .add_plugin(ExtractResourcePlugin::<ExtractedCrossfade>::default())
         .add_startup_system(spawn_clip_1)
         .add_startup_system(spawn_clip_2)
         .add_startup_system(setup)
-        .add_system(setup_clip_renderer)
+        //.add_system(setup_clip_renderer)
         .add_system(cube_rotator_system)
         .add_system(rotator_system)
         .add_system(clip_selector_gui)
-        .add_system(deck_gui)
-        .run();
+        .add_system(deck_system)
+        .add_system(deck_crossfader)
+        //.add_system(deck_gui)
+
+        .add_startup_system(setup_deck2);
+
+    app.sub_app_mut(RenderApp)
+        .add_system_to_stage(RenderStage::Extract, extract_deck2)
+        .add_system_to_stage(RenderStage::Prepare, prepare_deck2);
+
+    app.run();
+}
+
+pub fn deck_system(
+    deck: Res<Deck2>,
+    query: Query<(Entity, &DeckRenderer, &Handle<Deck2Material>)>,
+    clip_query: Query<&Clip>,
+    mut commands: Commands,
+    mut materials: ResMut<Assets<Deck2Material>>,
+) {
+    if deck.is_changed() {
+        for (entity, deck_renderer, handle) in query.iter() {
+            let mut tex1 = None;
+            let mut tex2 = None;
+            if deck.slot_a.is_some() {
+                tex1 = Some(clip_query.get(deck.slot_a.unwrap()).unwrap().render_target.clone());
+            }
+            if deck.slot_b.is_some() {
+                tex2 = Some(clip_query.get(deck.slot_b.unwrap()).unwrap().render_target.clone());
+            }
+
+
+            commands.entity(entity)
+                .remove::<Handle<Deck2Material>>()
+                .insert(
+                    materials.add(Deck2Material {
+                        fade_ab: deck.crossfade.clone(),
+                        image_a: tex1,
+                        image_b: tex2,
+                    })
+                );
+        }
+    }
 }
 
 // Marks the first pass cube (rendered to a texture.)
@@ -214,25 +259,34 @@ fn clip_selector_gui(
     mut deck: ResMut<Deck2>,
 ) {
     egui::Window::new("Deck Clip selector").show(egui_context.ctx_mut(), |ui| {
-        for (indx, slot) in deck.slots.iter_mut().enumerate() {
-            ui.label(format!("Slot {}:", indx + 1));
-            ui.horizontal(|ui| {
-                for (entity, clip) in clip_query.iter() {
-                    let mut button = egui::Button::new(format!("Clip {}", clip.clip_layer));
+        ui.horizontal(|ui| {
+            for (entity, clip) in clip_query.iter() {
+                let mut button = egui::Button::new(format!("Clip {}", clip.clip_layer));
 
-                    if slot.is_some() && slot.unwrap() == entity {
-                        button = button.frame(false);
-                    }
-                    if ui.add(button).clicked() {
-                        *slot = Some(entity);
-                    }
+                if deck.slot_a.is_some() && deck.slot_a.unwrap() == entity {
+                    button = button.frame(false);
                 }
-            });
-        }
+                if ui.add(button).clicked() {
+                    deck.slot_a = Some(entity);
+                }
+            }
+        });
+        ui.horizontal(|ui| {
+            for (entity, clip) in clip_query.iter() {
+                let mut button = egui::Button::new(format!("Clip {}", clip.clip_layer));
+
+                if deck.slot_b.is_some() && deck.slot_b.unwrap() == entity {
+                    button = button.frame(false);
+                }
+                if ui.add(button).clicked() {
+                    deck.slot_b = Some(entity);
+                }
+            }
+        });
     });
 }
 
-fn deck_gui(
+/*fn deck_gui(
     deck: ResMut<Deck2>,
     mut egui_context: ResMut<EguiContext>,
     mut clip_render_query: Query<(Entity, &mut ClipRender)>,
@@ -277,4 +331,14 @@ fn deck_gui(
             ui.end_row();
         });
     });
+}*/
+
+pub fn deck_crossfader(
+    mut deck: ResMut<Deck2>,
+    mut egui_context: ResMut<EguiContext>,
+) {
+    egui::Window::new("Crossfade").show(egui_context.ctx_mut(), |ui| {
+        ui.add(egui::Slider::new(&mut deck.crossfade, 0.0..=1.0).text("value"));
+    });
+
 }

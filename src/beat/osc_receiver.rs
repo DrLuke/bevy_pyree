@@ -9,7 +9,7 @@ struct OscBeatReceiver;
 
 /// Whenever a message is received at the provided beat address, increment the beat counter and send an event
 fn osc_beat_receiver_system(
-    beat_counter: ResMut<BeatCounter>,
+    mut beat_counter: ResMut<BeatCounter>,
     mut beat_writer: EventWriter<BeatEvent>,
     mut query: Query<(&OscBeatReceiver, &OscMethod), Changed<OscMethod>>,
 ) {
@@ -21,7 +21,7 @@ fn osc_beat_receiver_system(
     }
 }
 
-struct OscBeatReceiverPlugin {
+pub struct OscBeatReceiverPlugin {
     /// Address at which the osc beat signal comes in
     address: str,
 }
@@ -29,7 +29,7 @@ struct OscBeatReceiverPlugin {
 impl Plugin for OscBeatReceiverPlugin {
     fn build(&self, app: &mut App) {
         app
-            .add_system(|commands: &mut Commands| {
+            .add_system(|mut commands: Commands| {
                 commands.spawn_bundle((
                     OscBeatReceiver {},
                     OscMethod::new(vec![&self.address]).unwrap()
