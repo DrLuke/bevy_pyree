@@ -28,10 +28,12 @@ fn main() {
         .add_plugin(ExtractResourcePlugin::<ExtractedCrossfade>::default())
         .add_startup_system(spawn_clip_1)
         .add_startup_system(spawn_clip_2)
+        .add_startup_system(spawn_clip_3)
         .add_startup_system(setup)
         //.add_system(setup_clip_renderer)
         .add_system(cube_rotator_system)
         .add_system(rotator_system)
+        .add_system(cube_rotator_system_also)
         .add_system(clip_selector_gui)
         .add_system(deck_system)
         .add_system(deck_crossfader)
@@ -85,6 +87,9 @@ struct Clip1Cube;
 // Marks the main pass cube, to which the texture is applied.
 #[derive(Component)]
 struct Clip2Cube;
+
+#[derive(Component)]
+struct Clip3Cube;
 
 fn spawn_clip_1(
     mut commands: Commands,
@@ -218,6 +223,77 @@ fn spawn_clip_2(
     commands.spawn().insert(clip);
 }
 
+fn spawn_clip_3(
+    mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+    mut images: ResMut<Assets<Image>>,
+) {
+    let clip = Clip::new(
+        3,
+        images,
+        Extent3d {
+            width: 1920,
+            height: 1080,
+            ..default()
+        },
+    );
+
+    // Render layer
+    let rl = RenderLayers::layer(3);
+
+    // Just some geometry to display
+    let cube_handle = meshes.add(Mesh::from(shape::Torus {
+        radius: 2.0,
+        ring_radius: 0.4,
+        subdivisions_segments: 10,
+        subdivisions_sides: 10
+    }));
+    let cube_material_handle = materials.add(StandardMaterial {
+        base_color: Color::rgb(0.0, 0.1, 0.95),
+        reflectance: 0.02,
+        unlit: false,
+        ..default()
+    });
+
+    // The cube that will be rendered to the texture.
+    commands
+        .spawn_bundle(PbrBundle {
+            mesh: cube_handle,
+            material: cube_material_handle,
+            transform: Transform::from_translation(Vec3::new(0.0, 0.0, 1.0)),
+            ..default()
+        })
+        .insert(Clip3Cube)
+        .insert(rl);
+
+    // Light
+    // NOTE: Currently lights are shared between passes - see https://github.com/bevyengine/bevy/issues/3462
+    commands.spawn_bundle(PointLightBundle {
+        transform: Transform::from_translation(Vec3::new(0.0, 0.0, 10.0)),
+        ..default()
+    });
+
+    commands
+        .spawn_bundle(Camera3dBundle {
+            camera_3d: Camera3d {
+                clear_color: ClearColorConfig::Custom(Color::WHITE),
+                ..default()
+            },
+            camera: Camera {
+                priority: 0,
+                target: RenderTarget::Image(clip.render_target.clone()),
+                ..default()
+            },
+            transform: Transform::from_translation(Vec3::new(0.0, 0.0, 15.0))
+                .looking_at(Vec3::default(), Vec3::Y),
+            ..default()
+        })
+        .insert(rl);
+
+    commands.spawn().insert(clip);
+}
+
 fn setup(
     mut commands: Commands,
 ) {
@@ -250,6 +326,15 @@ fn cube_rotator_system(time: Res<Time>, mut query: Query<&mut Transform, With<Cl
     for mut transform in &mut query {
         transform.rotate_x(1.0 * time.delta_seconds());
         transform.rotate_y(0.7 * time.delta_seconds());
+    }
+}
+
+/// Rotates the outer cube (main pass)
+fn cube_rotator_system_also(time: Res<Time>, mut query: Query<&mut Transform, With<Clip3Cube>>) {
+    for mut transform in &mut query {
+        transform.rotate_x(1.01293192 * time.delta_seconds());
+        transform.rotate_y(0.5341 * time.delta_seconds());
+        transform.rotate_y(0.1 * time.delta_seconds());
     }
 }
 
