@@ -1,6 +1,5 @@
 use bevy::prelude::*;
 use bevy::render::render_resource::{Extent3d, TextureDescriptor, TextureDimension, TextureFormat, TextureUsages};
-use bevy::render::view::RenderLayers;
 
 
 /// A clip is something that contains a RenderTarget and some scene or video that is rendered
@@ -12,7 +11,7 @@ pub struct Clip {
     display_name: String,
     /// The image this clip will render into
     pub render_target: Handle<Image>,
-    /// Whether this clip is currently active and running
+    /// True if the clip is currently being used/displayed. Can be used by clip creators to, for example, stop expensive computations while the clip is not used.
     active: bool,
 }
 
@@ -51,4 +50,9 @@ impl Clip {
     pub fn get_display_name(&self) -> String {
         self.display_name.clone()
     }
+
+    pub fn is_active(&self) -> bool { self.active }
+    pub fn set_active(&mut self, active: bool) { self.active = active }
+    pub fn activate(&mut self) { self.set_active(true) }
+    pub fn deactivate(&mut self) { self.set_active(false) }
 }
