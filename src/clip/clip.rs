@@ -8,17 +8,17 @@ use bevy::render::view::RenderLayers;
 /// The Clip is responsible for rendering stuff into the RenderTarget, preferrably using Layers
 #[derive(Component)]
 pub struct Clip {
+    /// Display name for this clip
+    display_name: String,
     /// The image this clip will render into
     pub render_target: Handle<Image>,
-    /// Each clip gets it's own render layer
-    pub clip_layer: usize,
     /// Whether this clip is currently active and running
     active: bool,
 }
 
 impl Clip {
     pub fn new(
-        clip_layer: usize,
+        display_name: String,
         mut images: ResMut<Assets<Image>>,
         size: Extent3d,
     ) -> Self {
@@ -42,13 +42,13 @@ impl Clip {
         let image_handle = images.add(image);
 
         Self {
+            display_name,
             render_target: image_handle,
-            clip_layer,
-            active: true
+            active: true,
         }
     }
-}
 
-/// An entity that belongs to a certain clip with
-#[derive(Component)]
-struct ClipLayer(pub usize);
+    pub fn get_display_name(&self) -> String {
+        self.display_name.clone()
+    }
+}

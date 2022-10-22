@@ -98,7 +98,7 @@ fn spawn_clip_1(
     mut images: ResMut<Assets<Image>>,
 ) {
     let clip = Clip::new(
-        1,
+        "Clip 1".into(),
         images,
         Extent3d {
             width: 1920,
@@ -164,7 +164,7 @@ fn spawn_clip_2(
     mut images: ResMut<Assets<Image>>,
 ) {
     let clip = Clip::new(
-        2,
+        "Another Clip".into(),
         images,
         Extent3d {
             width: 1920,
@@ -230,7 +230,7 @@ fn spawn_clip_3(
     mut images: ResMut<Assets<Image>>,
 ) {
     let clip = Clip::new(
-        3,
+        "Torus".into(),
         images,
         Extent3d {
             width: 1920,
@@ -346,7 +346,7 @@ fn clip_selector_gui(
     egui::Window::new("Deck Clip selector").show(egui_context.ctx_mut(), |ui| {
         ui.horizontal(|ui| {
             for (entity, clip) in clip_query.iter() {
-                let mut button = egui::Button::new(format!("Clip {}", clip.clip_layer));
+                let mut button = egui::Button::new(clip.get_display_name());
 
                 if deck.slot_a.is_some() && deck.slot_a.unwrap() == entity {
                     button = button.frame(false);
@@ -358,7 +358,7 @@ fn clip_selector_gui(
         });
         ui.horizontal(|ui| {
             for (entity, clip) in clip_query.iter() {
-                let mut button = egui::Button::new(format!("Clip {}", clip.clip_layer));
+                let mut button = egui::Button::new(clip.get_display_name());
 
                 if deck.slot_b.is_some() && deck.slot_b.unwrap() == entity {
                     button = button.frame(false);
