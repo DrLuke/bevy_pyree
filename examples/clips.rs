@@ -30,6 +30,7 @@ fn main() {
         .add_startup_system(spawn_clip_2)
         .add_startup_system(spawn_clip_3)
         .add_startup_system(setup)
+        .add_startup_system(image_clip)
         //.add_system(setup_clip_renderer)
         .add_system(cube_rotator_system)
         .add_system(rotator_system)
@@ -46,6 +47,15 @@ fn main() {
         .add_system_to_stage(RenderStage::Prepare, prepare_deck2);
 
     app.run();
+}
+
+pub fn image_clip(mut commands: Commands, server: Res<AssetServer>) {
+    let clip = Clip::from_image("Clip1".into(), server.load("Clip1.png"));
+    commands.spawn().insert(clip);
+    let clip = Clip::from_image("Clip2".into(), server.load("Clip2.png"));
+    commands.spawn().insert(clip);
+    let clip = Clip::from_image("Clip3".into(), server.load("Clip3.png"));
+    commands.spawn().insert(clip);
 }
 
 pub fn deck_system(

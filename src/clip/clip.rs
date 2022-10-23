@@ -47,6 +47,17 @@ impl Clip {
         }
     }
 
+    pub fn from_image(
+        display_name: String,
+        image: Handle<Image>,
+    ) -> Self {
+        Self {
+            display_name,
+            render_target: image,
+            active: true,
+        }
+    }
+
     pub fn get_display_name(&self) -> String {
         self.display_name.clone()
     }
