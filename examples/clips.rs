@@ -12,12 +12,14 @@ use bevy::{
         view::RenderLayers,
     },
 };
-use bevy_pyree::clip::{Clip, ClipRender, Deck2, Deck2Material, DeckRenderer, extract_deck2, ExtractedCrossfade, prepare_deck2, setup_deck2};
+use bevy_pyree::clip::{Clip, ClipLayer, ClipRender, Deck2, Deck2Material, DeckRenderer, extract_deck2, ExtractedCrossfade, prepare_deck2, setup_deck2};
 use bevy_pyree::clip::setup_clip_renderer;
 use bevy::render::camera::{Projection, ScalingMode};
 use bevy::render::{RenderApp, RenderStage};
 use bevy::render::extract_resource::ExtractResourcePlugin;
 use bevy_egui::{egui, EguiContext, EguiPlugin};
+use bevy_egui::egui::TextureId;
+use crate::egui::emath;
 
 
 fn main() {
@@ -35,9 +37,10 @@ fn main() {
         .add_system(cube_rotator_system)
         .add_system(rotator_system)
         .add_system(cube_rotator_system_also)
-        .add_system(clip_selector_gui)
+        //.add_system(clip_selector_gui)
         .add_system(deck_system)
         .add_system(deck_crossfader)
+        .add_system(clip_layer_ui)
         //.add_system(deck_gui)
 
         .add_startup_system(setup_deck2);
@@ -50,12 +53,43 @@ fn main() {
 }
 
 pub fn image_clip(mut commands: Commands, server: Res<AssetServer>) {
+    let mut layer0 = ClipLayer::new(0);
+
     let clip = Clip::from_image("Clip1".into(), server.load("Clip1.png"));
-    commands.spawn().insert(clip);
+    let rt = clip.render_target.clone();
+    layer0.add_clip(0, commands.spawn().insert(clip).id(), rt);
     let clip = Clip::from_image("Clip2".into(), server.load("Clip2.png"));
-    commands.spawn().insert(clip);
+    let rt = clip.render_target.clone();
+    layer0.add_clip(1, commands.spawn().insert(clip).id(), rt);
     let clip = Clip::from_image("Clip3".into(), server.load("Clip3.png"));
-    commands.spawn().insert(clip);
+    let rt = clip.render_target.clone();
+    layer0.add_clip(2, commands.spawn().insert(clip).id(), rt);
+
+    let mut layer1 = ClipLayer::new(1);
+    let clip = Clip::from_image("Clip1".into(), server.load("Clip4.png"));
+    let rt = clip.render_target.clone();
+    layer1.add_clip(0, commands.spawn().insert(clip).id(), rt);
+    let clip = Clip::from_image("Clip2".into(), server.load("Clip5.png"));
+    let rt = clip.render_target.clone();
+    layer1.add_clip(1, commands.spawn().insert(clip).id(), rt);
+    let clip = Clip::from_image("Clip3".into(), server.load("Clip6.png"));
+    let rt = clip.render_target.clone();
+    layer1.add_clip(2, commands.spawn().insert(clip).id(), rt);
+
+    let mut layer2 = ClipLayer::new(2);
+    let clip = Clip::from_image("Clip1".into(), server.load("Clip7.png"));
+    let rt = clip.render_target.clone();
+    layer2.add_clip(0, commands.spawn().insert(clip).id(), rt);
+    let clip = Clip::from_image("Clip2".into(), server.load("Clip8.png"));
+    let rt = clip.render_target.clone();
+    layer2.add_clip(1, commands.spawn().insert(clip).id(), rt);
+    let clip = Clip::from_image("Clip3".into(), server.load("Clip9.png"));
+    let rt = clip.render_target.clone();
+    layer2.add_clip(2, commands.spawn().insert(clip).id(), rt);
+
+    commands.spawn().insert(layer0);
+    commands.spawn().insert(layer1);
+    commands.spawn().insert(layer2);
 }
 
 pub fn deck_system(
@@ -257,7 +291,7 @@ fn spawn_clip_3(
         radius: 2.0,
         ring_radius: 0.4,
         subdivisions_segments: 10,
-        subdivisions_sides: 10
+        subdivisions_sides: 10,
     }));
     let cube_material_handle = materials.add(StandardMaterial {
         base_color: Color::rgb(0.0, 0.1, 0.95),
@@ -435,5 +469,104 @@ pub fn deck_crossfader(
     egui::Window::new("Crossfade").show(egui_context.ctx_mut(), |ui| {
         ui.add(egui::Slider::new(&mut deck.crossfade, 0.0..=1.0).text("value"));
     });
+}
 
+pub fn clips_images(
+    query: Query<(Entity, &Clip)>,
+    mut egui_context: ResMut<EguiContext>,
+    mut deck: ResMut<Deck2>,
+) {
+    let mut image_ids = vec![];
+    let mut selected_index = None;
+    for (i, (entity, clip)) in query.iter().enumerate() {
+        let rt = clip.render_target.clone();
+        match egui_context.image_id(&rt) {
+            None => image_ids.push(egui_context.add_image(rt)),
+            Some(id) => image_ids.push(id)
+        }
+
+        if let Some(selected) = deck.slot_a {
+            if selected == entity {
+                selected_index = Some(i);
+            }
+        }
+    }
+
+    egui::Window::new("Clips").show(egui_context.ctx_mut(), |ui| {
+        for (i, id) in image_ids.iter().enumerate() {
+            if ui.add(egui::widgets::ImageButton::new(
+                *id,
+                emath::Vec2::new(100., 100.),
+            )
+                .selected(selected_index.unwrap_or(100) == i)
+            ).clicked() {
+                for (j, (entity, _)) in query.iter().enumerate() {
+                    if j == i {
+                        deck.slot_a = Some(entity);
+                    }
+                }
+            }
+        }
+    });
+}
+
+pub fn clip_layer_ui(
+    mut query: Query<&mut ClipLayer>,
+    mut egui_context: ResMut<EguiContext>,
+    mut deck: ResMut<Deck2>,
+) {
+    for mut cl in query.iter_mut() {
+        let mut image_ids = vec![];
+        let mut selected_index: u8 = cl.get_active_clip();
+
+        for rt in cl.get_render_targets() {
+            if let Some(handle) = rt {
+                match egui_context.image_id(&handle) {
+                    None => image_ids.push(Some(egui_context.add_image(handle))),
+                    Some(id) => image_ids.push(Some(id))
+                }
+            } else {
+                image_ids.push(None);
+            }
+        }
+
+        'l: loop {
+            match image_ids.pop() {
+                None => break 'l,
+                Some(maybe_texture_id) => match maybe_texture_id {
+                    None => continue,
+                    Some(texture_id) => {
+                        image_ids.push(Some(texture_id));
+                        break 'l;
+                    }
+                }
+            }
+        }
+
+        egui::Window::new(format!("Layer {}", cl.layer)).show(egui_context.ctx_mut(), |ui| {
+            for (i, id_maybe) in image_ids.iter().enumerate() {
+                if let Some(id) = id_maybe {
+                    if ui.add(egui::widgets::ImageButton::new(
+                        *id,
+                        emath::Vec2::new(100., 100.),
+                    )
+                        .selected(selected_index as usize == i)
+                    ).clicked() {
+                        for (j, clip) in cl.get_clips().iter().enumerate() {
+                            if j == i {
+                                match cl.layer {
+                                    0 => deck.slot_a = *clip,
+                                    1 => deck.slot_b = *clip,
+                                    _ => {}
+                                }
+                                cl.set_active_clip(j as u8);
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+
+    }
 }
