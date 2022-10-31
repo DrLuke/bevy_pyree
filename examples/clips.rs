@@ -12,7 +12,7 @@ use bevy::{
         view::RenderLayers,
     },
 };
-use bevy_pyree::clip::{Clip, ClipLayer, ClipRender, Deck2, Deck2Material, DeckRenderer, extract_deck2, ExtractedCrossfade, prepare_deck2, setup_deck2};
+use bevy_pyree::clip::{Clip, ClipLayer, ClipRender, Deck2, Deck2Material, DeckRenderer, extract_deck2, ExtractedCrossfade, OutputTarget, prepare_deck2, setup_deck2};
 use bevy_pyree::clip::setup_clip_renderer;
 use bevy::render::camera::{Projection, ScalingMode};
 use bevy::render::{RenderApp, RenderStage};
@@ -28,6 +28,9 @@ fn main() {
         .add_plugin(EguiPlugin)
         .add_plugin(MaterialPlugin::<Deck2Material>::default())
         .add_plugin(ExtractResourcePlugin::<ExtractedCrossfade>::default())
+
+        .add_startup_system(add_output_target)
+
         .add_startup_system(spawn_clip_1)
         .add_startup_system(spawn_clip_2)
         .add_startup_system(spawn_clip_3)
@@ -90,6 +93,19 @@ pub fn image_clip(mut commands: Commands, server: Res<AssetServer>) {
     commands.spawn().insert(layer0);
     commands.spawn().insert(layer1);
     commands.spawn().insert(layer2);
+}
+
+pub fn add_output_target(
+    mut commands: Commands,
+    mut images: ResMut<Assets<Image>>,
+) {
+    let size = Extent3d { width: 1920, height: 1080, ..default() };
+    commands.insert_resource(
+        OutputTarget::new(
+            size,
+            images,
+        )
+    );
 }
 
 pub fn deck_system(
@@ -566,7 +582,5 @@ pub fn clip_layer_ui(
                 }
             }
         });
-
-
     }
 }
