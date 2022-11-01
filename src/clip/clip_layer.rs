@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 
+/// A Clip layer contains clips. One of those clips is active and selected to be displayed to the output at any given time
 #[derive(Component)]
 pub struct ClipLayer {
     /// The index of this layer
@@ -11,7 +12,7 @@ pub struct ClipLayer {
     /// The selected clip, if any
     active_clip: u8,
     /// How much this layer's clip is supposed to be blended into the output
-    blend: f32,
+    pub blend: f32,
 }
 
 impl ClipLayer {
