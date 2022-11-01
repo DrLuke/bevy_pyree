@@ -12,7 +12,7 @@ use bevy::{
         view::RenderLayers,
     },
 };
-use bevy_pyree::clip::{Clip, ClipLayer, ClipRender, Deck2, Deck2Material, DeckRenderer, extract_deck2, ExtractedCrossfade, OutputTarget, prepare_deck2, PyreeClipPlugin, setup_deck2};
+use bevy_pyree::clip::{Clip, ClipLayer, ClipLayerBundle, ClipLayerMaterial, ClipRender, Deck2, Deck2Material, DeckRenderer, extract_deck2, ExtractedCrossfade, OutputTarget, prepare_deck2, PyreeClipPlugin, setup_deck2};
 use bevy_pyree::clip::setup_clip_renderer;
 use bevy::render::camera::{Projection, ScalingMode};
 use bevy::render::{RenderApp, RenderStage};
@@ -55,18 +55,31 @@ fn main() {
     app.run();
 }
 
-pub fn image_clip(mut commands: Commands, server: Res<AssetServer>) {
-    let mut layer0 = ClipLayer::new(0);
+pub fn image_clip(
+    mut commands: Commands,
+    server: Res<AssetServer>,
+    mut images: ResMut<Assets<Image>>,
+    mut materials: ResMut<Assets<ClipLayerMaterial>>,
+    mut meshes: ResMut<Assets<Mesh>>,
+) {
+    let output_rt = OutputTarget::new(Extent3d{width: 1920, height: 1080, ..default()}, images);
+
+    let mut layer0 = ClipLayerBundle::new(
+        0,
+        materials,
+        meshes,
+        output_rt.render_target.clone()
+    );
 
     let clip = Clip::from_image("Clip1".into(), server.load("Clip1.png"));
     let rt = clip.render_target.clone();
-    layer0.add_clip(0, commands.spawn().insert(clip).id(), rt);
+    layer0.clip_layer.add_clip(0, commands.spawn().insert(clip).id(), rt);
     let clip = Clip::from_image("Clip2".into(), server.load("Clip2.png"));
     let rt = clip.render_target.clone();
-    layer0.add_clip(1, commands.spawn().insert(clip).id(), rt);
+    layer0.clip_layer.add_clip(1, commands.spawn().insert(clip).id(), rt);
     let clip = Clip::from_image("Clip3".into(), server.load("Clip3.png"));
     let rt = clip.render_target.clone();
-    layer0.add_clip(2, commands.spawn().insert(clip).id(), rt);
+    layer0.clip_layer.add_clip(2, commands.spawn().insert(clip).id(), rt);
 
     let mut layer1 = ClipLayer::new(1);
     let clip = Clip::from_image("Clip1".into(), server.load("Clip4.png"));
@@ -90,9 +103,10 @@ pub fn image_clip(mut commands: Commands, server: Res<AssetServer>) {
     let rt = clip.render_target.clone();
     layer2.add_clip(2, commands.spawn().insert(clip).id(), rt);
 
-    commands.spawn().insert(layer0);
+    commands.spawn().insert_bundle(layer0);
     commands.spawn().insert(layer1);
     commands.spawn().insert(layer2);
+    commands.insert_resource(output_rt);
 }
 
 pub fn deck_system(
