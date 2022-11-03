@@ -11,7 +11,7 @@ use crate::clip::{ClipLayer};
 /// A texture a layer render's into
 #[derive(Component)]
 pub struct ClipLayerRenderTarget {
-    pub render_target: Handle<Image>
+    pub render_target: Handle<Image>,
 }
 
 impl ClipLayerRenderTarget {
@@ -79,6 +79,25 @@ pub fn update_clip_layer_blend(
             }
         } else {
             // TODO: print error?
+        }
+    }
+}
+
+/// Whenever a clip layer is added/removed, we need to refresh the entire render target chain
+pub fn update_render_target_chain(
+    mut clip_layer_query: Query<(&ClipLayer, &ClipLayerRenderTarget, &Handle<ClipLayerMaterial>)>,
+    clip_layer_added_query: Query<&ClipLayer, Added<ClipLayer>>,
+    mut materials: ResMut<Assets<ClipLayerMaterial>>,
+) {
+    if let Some(_) = clip_layer_added_query.iter().next() {
+        let mut clip_layers: Vec<(&ClipLayer, &ClipLayerRenderTarget, &Handle<ClipLayerMaterial>)> = clip_layer_query.iter().collect();
+        clip_layers.sort_by(|a, b| a.0.layer.cmp(&b.0.layer));
+        let mut prev_handle = None;
+        for (cl, clt, material_handle) in clip_layers.iter_mut() {
+            if let Some(material) = materials.get_mut(material_handle) {
+                material.previous_rt = prev_handle;
+            }
+            prev_handle = Some(clt.render_target.clone());
         }
     }
 }
