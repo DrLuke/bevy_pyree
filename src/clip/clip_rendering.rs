@@ -5,16 +5,52 @@ use bevy::{
         render_resource::{AsBindGroup, ShaderRef},
     },
 };
-use crate::clip::{ClipLayer, OutputTarget};
+use bevy::render::render_resource::{Extent3d, TextureDescriptor, TextureDimension, TextureFormat, TextureUsages};
+use crate::clip::{ClipLayer};
+
+/// A texture a layer render's into
+#[derive(Component)]
+pub struct ClipLayerRenderTarget {
+    pub render_target: Handle<Image>
+}
+
+impl ClipLayerRenderTarget {
+    pub fn new(
+        images: &mut ResMut<Assets<Image>>,
+        size: Extent3d,
+    ) -> Self {
+        let mut image = Image {
+            texture_descriptor: TextureDescriptor {
+                label: None,
+                size,
+                dimension: TextureDimension::D2,
+                format: TextureFormat::Bgra8UnormSrgb,
+                mip_level_count: 1,
+                sample_count: 1,
+                usage: TextureUsages::TEXTURE_BINDING
+                    | TextureUsages::COPY_DST
+                    | TextureUsages::RENDER_ATTACHMENT,
+            },
+            ..default()
+        };
+        image.resize(size);
+
+        Self {
+            render_target: images.add(image)
+        }
+    }
+}
 
 #[derive(AsBindGroup, TypeUuid, Clone)]
 #[uuid = "b9dc231d-b94d-4cdf-9a7e-b527f6720a60"]
 pub struct ClipLayerMaterial {
     #[uniform(0)]
     pub blend: f32,
+    /// The output from a previous layer, if any
     #[texture(1)]
     #[sampler(2)]
-    pub output_rt: Handle<Image>,
+    pub previous_rt: Option<Handle<Image>>,
+    /// The selected clip that is to be blended into the previous frame
     #[texture(3)]
     #[sampler(4)]
     pub clip_rt: Option<Handle<Image>>,
