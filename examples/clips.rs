@@ -12,7 +12,7 @@ use bevy::{
         view::RenderLayers,
     },
 };
-use bevy_pyree::clip::{Clip, ClipLayer, ClipLayerBundle, ClipLayerMaterial, ClipRender, Deck2, Deck2Material, DeckRenderer, extract_deck2, ExtractedCrossfade, prepare_deck2, PyreeClipPlugin, setup_deck2, spawn_clip_layer_bundle};
+use bevy_pyree::clip::{Clip, ClipLayer, ClipLayerBundle, ClipLayerLastRenderTarget, ClipLayerMaterial, ClipRender, Deck2, Deck2Material, DeckRenderer, extract_deck2, ExtractedCrossfade, prepare_deck2, PyreeClipPlugin, setup_deck2, spawn_clip_layer_bundle};
 use bevy_pyree::clip::setup_clip_renderer;
 use bevy::render::camera::{Projection, ScalingMode};
 use bevy::render::{RenderApp, RenderStage};
@@ -122,6 +122,7 @@ pub fn deck_system(
     clip_query: Query<&Clip>,
     mut commands: Commands,
     mut materials: ResMut<Assets<Deck2Material>>,
+    output_rt: ResMut<ClipLayerLastRenderTarget>
 ) {
     if deck.is_changed() {
         for (entity, deck_renderer, handle) in query.iter() {
@@ -140,7 +141,7 @@ pub fn deck_system(
                 .insert(
                     materials.add(Deck2Material {
                         fade_ab: deck.crossfade.clone(),
-                        image_a: tex1,
+                        image_a: output_rt.render_target.clone(),
                         image_b: tex2,
                     })
                 );
@@ -568,6 +569,7 @@ pub fn clip_layer_ui(
         }
 
         egui::Window::new(format!("Layer {}", cl.layer)).show(egui_context.ctx_mut(), |ui| {
+            ui.add(egui::Slider::new(&mut cl.blend, 0.0..=1.0).text("value"));
             for (i, id_maybe) in image_ids.iter().enumerate() {
                 if let Some(id) = id_maybe {
                     if ui.add(egui::widgets::ImageButton::new(

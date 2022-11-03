@@ -22,7 +22,7 @@ impl ClipLayer {
             clips: vec![None; u8::MAX as usize],
             render_targets: vec![None; u8::MAX as usize],
             active_clip: 0,
-            blend: 0.0,
+            blend: 0.5,
         }
     }
 

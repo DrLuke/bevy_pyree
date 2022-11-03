@@ -25,7 +25,7 @@ impl ClipLayerBundle {
         let render_mesh = MaterialMeshBundle {
             mesh: meshes.add(Mesh::from(shape::Plane { size: 2.0 })),
             material: materials.add(ClipLayerMaterial {
-                blend: 0.0,
+                blend: 0.5,
                 previous_rt: None,
                 clip_rt: None,
             }),
@@ -53,22 +53,23 @@ pub fn spawn_clip_layer_bundle(
     let render_target = clip_layer_bundle.clip_layer_render_target.render_target.clone();
     commands.spawn_bundle(
         clip_layer_bundle
-    ).insert(RenderLayers::layer(render_layer))
-        .with_children(|child_builder| {
-        child_builder.spawn_bundle(Camera3dBundle {
-            camera: Camera {
-                priority: 10000 + layer as isize,
-                target: RenderTarget::Image(render_target),
-                ..default()
-            },
-            projection: Projection::Orthographic(OrthographicProjection {
-                scaling_mode: ScalingMode::None,
-                ..default()
-            }),
-            transform: Transform::from_translation(Vec3::new(0.0, 10.0, 0.0)).looking_at(Vec3::default(), Vec3::Z),
-            ..default()
-        });
-    })
+    )
         .insert(RenderLayers::layer(render_layer))
+        .with_children(|child_builder| {
+            child_builder.spawn_bundle(Camera3dBundle {
+                camera: Camera {
+                    priority: 100 + layer as isize,
+                    target: RenderTarget::Image(render_target),
+                    ..default()
+                },
+                projection: Projection::Orthographic(OrthographicProjection {
+                    scaling_mode: ScalingMode::None,
+                    ..default()
+                }),
+                transform: Transform::from_translation(Vec3::new(0.0, 10.0, 0.0)).looking_at(Vec3::default(), Vec3::Z),
+                ..default()
+            })
+                .insert(RenderLayers::layer(render_layer));
+        })
         .id()
 }

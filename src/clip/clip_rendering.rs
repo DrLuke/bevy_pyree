@@ -14,6 +14,13 @@ pub struct ClipLayerRenderTarget {
     pub render_target: Handle<Image>,
 }
 
+/// Resource containing a handle to the last render target in the chain
+/// This render target is rendered to the screen
+#[derive(Component)]
+pub struct ClipLayerLastRenderTarget {
+    pub render_target: Option<Handle<Image>>,
+}
+
 impl ClipLayerRenderTarget {
     pub fn new(
         images: &mut ResMut<Assets<Image>>,
@@ -88,16 +95,18 @@ pub fn update_render_target_chain(
     mut clip_layer_query: Query<(&ClipLayer, &ClipLayerRenderTarget, &Handle<ClipLayerMaterial>)>,
     clip_layer_added_query: Query<&ClipLayer, Added<ClipLayer>>,
     mut materials: ResMut<Assets<ClipLayerMaterial>>,
+    mut last_rt: ResMut<ClipLayerLastRenderTarget>
 ) {
-    if let Some(_) = clip_layer_added_query.iter().next() {
+    if clip_layer_added_query.iter().next().is_some() {
         let mut clip_layers: Vec<(&ClipLayer, &ClipLayerRenderTarget, &Handle<ClipLayerMaterial>)> = clip_layer_query.iter().collect();
         clip_layers.sort_by(|a, b| a.0.layer.cmp(&b.0.layer));
         let mut prev_handle = None;
-        for (cl, clt, material_handle) in clip_layers.iter_mut() {
+        for (_, clt, material_handle) in clip_layers.iter_mut() {
             if let Some(material) = materials.get_mut(material_handle) {
                 material.previous_rt = prev_handle;
             }
             prev_handle = Some(clt.render_target.clone());
         }
+        last_rt.render_target = prev_handle;
     }
 }

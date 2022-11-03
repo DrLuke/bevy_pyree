@@ -19,6 +19,7 @@ use bevy::{
     window::PresentMode,
     pbr::RenderMaterials,
 };
+use bevy::render::view::RenderLayers;
 
 /// Simple Deck with 2 slots and crossfader
 #[derive(Default, Component, Clone, Copy)]
@@ -68,7 +69,7 @@ pub fn setup_deck2(
 
     commands.spawn_bundle(Camera3dBundle {
         camera: Camera {
-            priority: 10,
+            priority: 10000000,
             ..default()
         },
         projection: Projection::Orthographic(OrthographicProjection {
@@ -77,9 +78,9 @@ pub fn setup_deck2(
         }),
         transform: Transform::from_translation(Vec3::new(0.0, 10.0, 0.0)).looking_at(Vec3::default(), Vec3::Z),
         ..default()
-    });
+    }).insert(RenderLayers::layer(10));
 
-    commands.spawn_bundle(render_mesh).insert(DeckRenderer);
+    commands.spawn_bundle(render_mesh).insert(DeckRenderer).insert(RenderLayers::layer(10));
 }
 
 
