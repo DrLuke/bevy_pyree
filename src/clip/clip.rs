@@ -18,7 +18,7 @@ pub struct Clip {
 impl Clip {
     pub fn new(
         display_name: String,
-        mut images: ResMut<Assets<Image>>,
+        images: &mut ResMut<Assets<Image>>,
         size: Extent3d,
     ) -> Self {
         // This is the texture that will be rendered to.

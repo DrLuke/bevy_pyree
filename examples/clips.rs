@@ -31,9 +31,9 @@ fn main() {
 
         .add_plugin(PyreeClipPlugin)
 
-        .add_startup_system(spawn_clip_1)
-        .add_startup_system(spawn_clip_2)
-        .add_startup_system(spawn_clip_3)
+        //.add_startup_system(spawn_clip_1)
+        //.add_startup_system(spawn_clip_2)
+        //.add_startup_system(spawn_clip_3)
         .add_startup_system(setup)
         .add_startup_system(image_clip)
         //.add_system(setup_clip_renderer)
@@ -60,13 +60,14 @@ pub fn image_clip(
     server: Res<AssetServer>,
     mut images: ResMut<Assets<Image>>,
     mut materials: ResMut<Assets<ClipLayerMaterial>>,
+    mut std_materials: ResMut<Assets<StandardMaterial>>,
     mut meshes: ResMut<Assets<Mesh>>,
 ) {
     let mut layer0 = ClipLayerBundle::new(
         0,
         &mut materials,
         &mut meshes,
-        &mut images
+        &mut images,
     );
 
     let clip = Clip::from_image("Clip1".into(), server.load("Clip1.png"));
@@ -79,11 +80,14 @@ pub fn image_clip(
     let rt = clip.render_target.clone();
     layer0.clip_layer.add_clip(2, commands.spawn().insert(clip).id(), rt);
 
+    let (dyn_clip, rt) = spawn_clip_1(&mut commands, &mut meshes, &mut std_materials, &mut images);
+    layer0.clip_layer.add_clip(3, dyn_clip, rt);
+
     let mut layer1 = ClipLayerBundle::new(
         1,
         &mut materials,
         &mut meshes,
-        &mut images
+        &mut images,
     );
     let clip = Clip::from_image("Clip1".into(), server.load("Clip4.png"));
     let rt = clip.render_target.clone();
@@ -95,11 +99,14 @@ pub fn image_clip(
     let rt = clip.render_target.clone();
     layer1.clip_layer.add_clip(2, commands.spawn().insert(clip).id(), rt);
 
+    let (dyn_clip, rt) = spawn_clip_2(&mut commands, &mut meshes, &mut std_materials, &mut images);
+    layer1.clip_layer.add_clip(3, dyn_clip, rt);
+
     let mut layer2 = ClipLayerBundle::new(
         2,
         &mut materials,
         &mut meshes,
-        &mut images
+        &mut images,
     );
     let clip = Clip::from_image("Clip1".into(), server.load("Clip7.png"));
     let rt = clip.render_target.clone();
@@ -110,6 +117,9 @@ pub fn image_clip(
     let clip = Clip::from_image("Clip3".into(), server.load("Clip9.png"));
     let rt = clip.render_target.clone();
     layer2.clip_layer.add_clip(2, commands.spawn().insert(clip).id(), rt);
+
+    let (dyn_clip, rt) = spawn_clip_3(&mut commands, &mut meshes, &mut std_materials, &mut images);
+    layer2.clip_layer.add_clip(3, dyn_clip, rt);
 
     spawn_clip_layer_bundle(&mut commands, layer0, 20);
     spawn_clip_layer_bundle(&mut commands, layer1, 21);
@@ -122,7 +132,7 @@ pub fn deck_system(
     clip_query: Query<&Clip>,
     mut commands: Commands,
     mut materials: ResMut<Assets<Deck2Material>>,
-    output_rt: ResMut<ClipLayerLastRenderTarget>
+    output_rt: ResMut<ClipLayerLastRenderTarget>,
 ) {
     if deck.is_changed() {
         for (entity, deck_renderer, handle) in query.iter() {
@@ -161,11 +171,11 @@ struct Clip2Cube;
 struct Clip3Cube;
 
 fn spawn_clip_1(
-    mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
-    mut images: ResMut<Assets<Image>>,
-) {
+    mut commands: &mut Commands,
+    mut meshes: &mut ResMut<Assets<Mesh>>,
+    mut materials: &mut ResMut<Assets<StandardMaterial>>,
+    mut images: &mut ResMut<Assets<Image>>,
+) -> (Entity, Handle<Image>) {
     let clip = Clip::new(
         "Clip 1".into(),
         images,
@@ -223,18 +233,19 @@ fn spawn_clip_1(
         })
         .insert(rl);
 
-    commands.spawn().insert(clip);
+    let rt = clip.render_target.clone();
+    (commands.spawn().insert(clip).id(), rt)
 }
 
 fn spawn_clip_2(
-    mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
-    mut images: ResMut<Assets<Image>>,
-) {
+    mut commands: &mut Commands,
+    mut meshes: &mut ResMut<Assets<Mesh>>,
+    mut materials: &mut ResMut<Assets<StandardMaterial>>,
+    mut images: &mut ResMut<Assets<Image>>,
+) -> (Entity, Handle<Image>) {
     let clip = Clip::new(
         "Another Clip".into(),
-        images,
+        &mut images,
         Extent3d {
             width: 1920,
             height: 1080,
@@ -289,18 +300,19 @@ fn spawn_clip_2(
         })
         .insert(rl);
 
-    commands.spawn().insert(clip);
+    let rt = clip.render_target.clone();
+    (commands.spawn().insert(clip).id(), rt)
 }
 
 fn spawn_clip_3(
-    mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
-    mut images: ResMut<Assets<Image>>,
-) {
+    mut commands: &mut Commands,
+    mut meshes: &mut ResMut<Assets<Mesh>>,
+    mut materials: &mut ResMut<Assets<StandardMaterial>>,
+    mut images: &mut ResMut<Assets<Image>>,
+) -> (Entity, Handle<Image>) {
     let clip = Clip::new(
         "Torus".into(),
-        images,
+        &mut images,
         Extent3d {
             width: 1920,
             height: 1080,
@@ -360,7 +372,8 @@ fn spawn_clip_3(
         })
         .insert(rl);
 
-    commands.spawn().insert(clip);
+    let rt = clip.render_target.clone();
+    (commands.spawn().insert(clip).id(), rt)
 }
 
 fn setup(
