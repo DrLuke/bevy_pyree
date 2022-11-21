@@ -19,6 +19,7 @@ use bevy::render::{RenderApp, RenderStage};
 use bevy::render::extract_resource::ExtractResourcePlugin;
 use bevy_egui::{egui, EguiContext, EguiPlugin};
 use bevy_egui::egui::TextureId;
+use bevy_inspector_egui::WorldInspectorPlugin;
 use crate::egui::emath;
 
 
@@ -28,6 +29,8 @@ fn main() {
         .add_plugin(EguiPlugin)
         .add_plugin(MaterialPlugin::<Deck2Material>::default())
         .add_plugin(ExtractResourcePlugin::<ExtractedCrossfade>::default())
+
+        .add_plugin(WorldInspectorPlugin::default())
 
         .add_plugin(PyreeClipPlugin)
 
