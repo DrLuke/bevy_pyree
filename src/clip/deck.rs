@@ -22,7 +22,7 @@ use bevy::{
 use bevy::render::view::RenderLayers;
 
 /// Simple Deck with 2 slots and crossfader
-#[derive(Default, Component, Clone, Copy)]
+#[derive(Default, Resource, Clone, Copy)]
 pub struct Deck2 {
     pub slot_a: Option<Entity>,
     pub slot_b: Option<Entity>,
@@ -83,7 +83,7 @@ pub fn setup_deck2(
     commands.spawn_bundle(render_mesh).insert(DeckRenderer).insert(RenderLayers::layer(10));
 }
 
-
+#[derive(Resource)]
 pub struct ExtractedCrossfade(f32);
 
 impl ExtractResource for ExtractedCrossfade {

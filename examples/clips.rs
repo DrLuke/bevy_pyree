@@ -72,13 +72,13 @@ pub fn image_clip(
 
     let clip = Clip::from_image("Clip1".into(), server.load("Clip1.png"));
     let rt = clip.render_target.clone();
-    layer0.clip_layer.add_clip(0, commands.spawn().insert(clip).id(), rt);
+    layer0.clip_layer.add_clip(0, commands.spawn(clip).id(), rt);
     let clip = Clip::from_image("Clip2".into(), server.load("Clip2.png"));
     let rt = clip.render_target.clone();
-    layer0.clip_layer.add_clip(1, commands.spawn().insert(clip).id(), rt);
+    layer0.clip_layer.add_clip(1, commands.spawn(clip).id(), rt);
     let clip = Clip::from_image("Clip3".into(), server.load("Clip3.png"));
     let rt = clip.render_target.clone();
-    layer0.clip_layer.add_clip(2, commands.spawn().insert(clip).id(), rt);
+    layer0.clip_layer.add_clip(2, commands.spawn(clip).id(), rt);
 
     let (dyn_clip, rt) = spawn_clip_1(&mut commands, &mut meshes, &mut std_materials, &mut images);
     layer0.clip_layer.add_clip(3, dyn_clip, rt);
@@ -91,13 +91,13 @@ pub fn image_clip(
     );
     let clip = Clip::from_image("Clip1".into(), server.load("Clip4.png"));
     let rt = clip.render_target.clone();
-    layer1.clip_layer.add_clip(0, commands.spawn().insert(clip).id(), rt);
+    layer1.clip_layer.add_clip(0, commands.spawn(clip).id(), rt);
     let clip = Clip::from_image("Clip2".into(), server.load("Clip5.png"));
     let rt = clip.render_target.clone();
-    layer1.clip_layer.add_clip(1, commands.spawn().insert(clip).id(), rt);
+    layer1.clip_layer.add_clip(1, commands.spawn(clip).id(), rt);
     let clip = Clip::from_image("Clip3".into(), server.load("Clip6.png"));
     let rt = clip.render_target.clone();
-    layer1.clip_layer.add_clip(2, commands.spawn().insert(clip).id(), rt);
+    layer1.clip_layer.add_clip(2, commands.spawn(clip).id(), rt);
 
     let (dyn_clip, rt) = spawn_clip_2(&mut commands, &mut meshes, &mut std_materials, &mut images);
     layer1.clip_layer.add_clip(3, dyn_clip, rt);
@@ -110,13 +110,13 @@ pub fn image_clip(
     );
     let clip = Clip::from_image("Clip1".into(), server.load("Clip7.png"));
     let rt = clip.render_target.clone();
-    layer2.clip_layer.add_clip(0, commands.spawn().insert(clip).id(), rt);
+    layer2.clip_layer.add_clip(0, commands.spawn(clip).id(), rt);
     let clip = Clip::from_image("Clip2".into(), server.load("Clip8.png"));
     let rt = clip.render_target.clone();
-    layer2.clip_layer.add_clip(1, commands.spawn().insert(clip).id(), rt);
+    layer2.clip_layer.add_clip(1, commands.spawn(clip).id(), rt);
     let clip = Clip::from_image("Clip3".into(), server.load("Clip9.png"));
     let rt = clip.render_target.clone();
-    layer2.clip_layer.add_clip(2, commands.spawn().insert(clip).id(), rt);
+    layer2.clip_layer.add_clip(2, commands.spawn(clip).id(), rt);
 
     let (dyn_clip, rt) = spawn_clip_3(&mut commands, &mut meshes, &mut std_materials, &mut images);
     layer2.clip_layer.add_clip(3, dyn_clip, rt);
@@ -234,7 +234,7 @@ fn spawn_clip_1(
         .insert(rl);
 
     let rt = clip.render_target.clone();
-    (commands.spawn().insert(clip).id(), rt)
+    (commands.spawn(clip).id(), rt)
 }
 
 fn spawn_clip_2(
@@ -301,7 +301,7 @@ fn spawn_clip_2(
         .insert(rl);
 
     let rt = clip.render_target.clone();
-    (commands.spawn().insert(clip).id(), rt)
+    (commands.spawn(clip).id(), rt)
 }
 
 fn spawn_clip_3(
@@ -373,7 +373,7 @@ fn spawn_clip_3(
         .insert(rl);
 
     let rt = clip.render_target.clone();
-    (commands.spawn().insert(clip).id(), rt)
+    (commands.spawn(clip).id(), rt)
 }
 
 fn setup(

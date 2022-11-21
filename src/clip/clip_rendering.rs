@@ -16,7 +16,7 @@ pub struct ClipLayerRenderTarget {
 
 /// Resource containing a handle to the last render target in the chain
 /// This render target is rendered to the screen
-#[derive(Component)]
+#[derive(Resource)]
 pub struct ClipLayerLastRenderTarget {
     pub render_target: Option<Handle<Image>>,
 }
