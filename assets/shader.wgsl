@@ -24,6 +24,7 @@ var our_sampler_b: sampler;
 @fragment
 fn fragment(input: VertexOutput) -> @location(0) vec4<f32> {
     //var output_color = vec4<f32>(uniform_data.crossfade, sin(uniform_data.crossfade), 1.0, 1.0);
-    var output_color = (1.-uniform_data.crossfade) * textureSample(texture_a, our_sampler_a, input.uv) + uniform_data.crossfade*textureSample(texture_b, our_sampler_b, input.uv);
+    var uv = vec2<f32>(1., 0.) + input.uv * vec2<f32>(-1., 1.);
+    var output_color = (1.-uniform_data.crossfade) * textureSample(texture_a, our_sampler_a, uv) + uniform_data.crossfade*textureSample(texture_b, our_sampler_b, uv);
     return output_color;
 }
