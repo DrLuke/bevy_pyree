@@ -51,7 +51,7 @@ pub fn spawn_clip_layer_bundle(
 ) -> Entity {
     let layer = clip_layer_bundle.clip_layer.layer;
     let render_target = clip_layer_bundle.clip_layer_render_target.render_target.clone();
-    commands.spawn_bundle(
+    commands.spawn(
         clip_layer_bundle
     )
         .insert(RenderLayers::layer(render_layer))

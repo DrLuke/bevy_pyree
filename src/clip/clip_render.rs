@@ -34,6 +34,6 @@ pub fn setup_clip_renderer(
         ..default()
     };
 
-    commands.spawn_bundle(pbr_bundle)
+    commands.spawn(pbr_bundle)
         .insert(clip_render);
 }

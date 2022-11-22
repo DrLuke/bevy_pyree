@@ -67,7 +67,7 @@ pub fn setup_deck2(
         ..default()
     };
 
-    commands.spawn_bundle(Camera3dBundle {
+    commands.spawn(Camera3dBundle {
         camera: Camera {
             priority: 10000000,
             ..default()
@@ -80,7 +80,7 @@ pub fn setup_deck2(
         ..default()
     }).insert(RenderLayers::layer(10));
 
-    commands.spawn_bundle(render_mesh).insert(DeckRenderer).insert(RenderLayers::layer(10));
+    commands.spawn(render_mesh).insert(DeckRenderer).insert(RenderLayers::layer(10));
 }
 
 #[derive(Resource)]

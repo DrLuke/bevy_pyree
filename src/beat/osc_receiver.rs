@@ -30,7 +30,7 @@ impl Plugin for OscBeatReceiverPlugin {
     fn build(&self, app: &mut App) {
         app
             .add_system(|mut commands: Commands| {
-                commands.spawn_bundle((
+                commands.spawn((
                     OscBeatReceiver {},
                     OscMethod::new(vec![&self.address]).unwrap()
                 ));

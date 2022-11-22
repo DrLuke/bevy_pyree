@@ -214,13 +214,13 @@ fn spawn_clip_1(
 
     // Light
     // NOTE: Currently lights are shared between passes - see https://github.com/bevyengine/bevy/issues/3462
-    commands.spawn_bundle(PointLightBundle {
+    commands.spawn(PointLightBundle {
         transform: Transform::from_translation(Vec3::new(0.0, 0.0, 10.0)),
         ..default()
     });
 
     commands
-        .spawn_bundle(Camera3dBundle {
+        .spawn(Camera3dBundle {
             camera_3d: Camera3d {
                 clear_color: ClearColorConfig::Custom(Color::WHITE),
                 ..default()
@@ -281,13 +281,13 @@ fn spawn_clip_2(
 
     // Light
     // NOTE: Currently lights are shared between passes - see https://github.com/bevyengine/bevy/issues/3462
-    commands.spawn_bundle(PointLightBundle {
+    commands.spawn(PointLightBundle {
         transform: Transform::from_translation(Vec3::new(0.0, 0.0, 10.0)),
         ..default()
     });
 
     commands
-        .spawn_bundle(Camera3dBundle {
+        .spawn(Camera3dBundle {
             camera_3d: Camera3d {
                 clear_color: ClearColorConfig::Custom(Color::WHITE),
                 ..default()
@@ -353,13 +353,13 @@ fn spawn_clip_3(
 
     // Light
     // NOTE: Currently lights are shared between passes - see https://github.com/bevyengine/bevy/issues/3462
-    commands.spawn_bundle(PointLightBundle {
+    commands.spawn(PointLightBundle {
         transform: Transform::from_translation(Vec3::new(0.0, 0.0, 10.0)),
         ..default()
     });
 
     commands
-        .spawn_bundle(Camera3dBundle {
+        .spawn(Camera3dBundle {
             camera_3d: Camera3d {
                 clear_color: ClearColorConfig::Custom(Color::WHITE),
                 ..default()
@@ -382,7 +382,7 @@ fn spawn_clip_3(
 fn setup(
     mut commands: Commands,
 ) {
-    commands.spawn_bundle(Camera3dBundle {
+    commands.spawn(Camera3dBundle {
         camera: Camera {
             priority: 1,
             ..default()
