@@ -12,7 +12,7 @@ use bevy::{
         view::RenderLayers,
     },
 };
-use bevy_pyree::clip::{Clip, ClipLayer, ClipLayerBundle, ClipLayerLastRenderTarget, ClipLayerMaterial, ClipRender, ClipVisibilityLayerAllocator, Deck2, Deck2Material, DeckRenderer, extract_deck2, ExtractedCrossfade, prepare_deck2, PyreeClipPlugin, setup_deck2, spawn_clip_layer_bundle};
+use bevy_pyree::clip::{Clip, ClipLayer, ClipLayerBundle, ClipLayerLastRenderTarget, ClipLayerMaterial, ClipRender, Deck2, Deck2Material, DeckRenderer, extract_deck2, ExtractedCrossfade, prepare_deck2, PyreeClipPlugin, setup_deck2, spawn_clip_layer_bundle};
 use bevy_pyree::clip::setup_clip_renderer;
 use bevy::render::camera::{Projection, ScalingMode};
 use bevy::render::{RenderApp, RenderStage};
@@ -65,7 +65,6 @@ pub fn image_clip(
     mut materials: ResMut<Assets<ClipLayerMaterial>>,
     mut std_materials: ResMut<Assets<StandardMaterial>>,
     mut meshes: ResMut<Assets<Mesh>>,
-    mut clip_visibility_layer_allocator: ResMut<ClipVisibilityLayerAllocator>,
 ) {
     let mut layer0 = ClipLayerBundle::new(
         0,
@@ -74,17 +73,17 @@ pub fn image_clip(
         &mut images,
     );
 
-    let clip = Clip::from_image("Clip1".into(), server.load("Clip1.png"), &mut clip_visibility_layer_allocator);
+    let clip = Clip::from_image("Clip1".into(), server.load("Clip1.png"));
     let rt = clip.render_target.clone();
     layer0.clip_layer.add_clip(0, commands.spawn(clip).id(), rt);
-    let clip = Clip::from_image("Clip2".into(), server.load("Clip2.png"), &mut clip_visibility_layer_allocator);
+    let clip = Clip::from_image("Clip2".into(), server.load("Clip2.png"));
     let rt = clip.render_target.clone();
     layer0.clip_layer.add_clip(1, commands.spawn(clip).id(), rt);
-    let clip = Clip::from_image("Clip3".into(), server.load("Clip3.png"), &mut clip_visibility_layer_allocator);
+    let clip = Clip::from_image("Clip3".into(), server.load("Clip3.png"));
     let rt = clip.render_target.clone();
     layer0.clip_layer.add_clip(2, commands.spawn(clip).id(), rt);
 
-    let (dyn_clip, rt) = spawn_clip_1(&mut commands, &mut meshes, &mut std_materials, &mut images, &mut clip_visibility_layer_allocator);
+    let (dyn_clip, rt) = spawn_clip_1(&mut commands, &mut meshes, &mut std_materials, &mut images);
     layer0.clip_layer.add_clip(3, dyn_clip, rt);
 
     let mut layer1 = ClipLayerBundle::new(
@@ -93,17 +92,17 @@ pub fn image_clip(
         &mut meshes,
         &mut images,
     );
-    let clip = Clip::from_image("Clip1".into(), server.load("Clip4.png"), &mut clip_visibility_layer_allocator);
+    let clip = Clip::from_image("Clip1".into(), server.load("Clip4.png"));
     let rt = clip.render_target.clone();
     layer1.clip_layer.add_clip(0, commands.spawn(clip).id(), rt);
-    let clip = Clip::from_image("Clip2".into(), server.load("Clip5.png"), &mut clip_visibility_layer_allocator);
+    let clip = Clip::from_image("Clip2".into(), server.load("Clip5.png"));
     let rt = clip.render_target.clone();
     layer1.clip_layer.add_clip(1, commands.spawn(clip).id(), rt);
-    let clip = Clip::from_image("Clip3".into(), server.load("Clip6.png"), &mut clip_visibility_layer_allocator);
+    let clip = Clip::from_image("Clip3".into(), server.load("Clip6.png"));
     let rt = clip.render_target.clone();
     layer1.clip_layer.add_clip(2, commands.spawn(clip).id(), rt);
 
-    let (dyn_clip, rt) = spawn_clip_2(&mut commands, &mut meshes, &mut std_materials, &mut images, &mut clip_visibility_layer_allocator);
+    let (dyn_clip, rt) = spawn_clip_2(&mut commands, &mut meshes, &mut std_materials, &mut images);
     layer1.clip_layer.add_clip(3, dyn_clip, rt);
 
     let mut layer2 = ClipLayerBundle::new(
@@ -112,17 +111,17 @@ pub fn image_clip(
         &mut meshes,
         &mut images,
     );
-    let clip = Clip::from_image("Clip1".into(), server.load("Clip7.png"), &mut clip_visibility_layer_allocator);
+    let clip = Clip::from_image("Clip1".into(), server.load("Clip7.png"));
     let rt = clip.render_target.clone();
     layer2.clip_layer.add_clip(0, commands.spawn(clip).id(), rt);
-    let clip = Clip::from_image("Clip2".into(), server.load("Clip8.png"), &mut clip_visibility_layer_allocator);
+    let clip = Clip::from_image("Clip2".into(), server.load("Clip8.png"));
     let rt = clip.render_target.clone();
     layer2.clip_layer.add_clip(1, commands.spawn(clip).id(), rt);
-    let clip = Clip::from_image("Clip3".into(), server.load("Clip9.png"), &mut clip_visibility_layer_allocator);
+    let clip = Clip::from_image("Clip3".into(), server.load("Clip9.png"));
     let rt = clip.render_target.clone();
     layer2.clip_layer.add_clip(2, commands.spawn(clip).id(), rt);
 
-    let (dyn_clip, rt) = spawn_clip_3(&mut commands, &mut meshes, &mut std_materials, &mut images, &mut clip_visibility_layer_allocator);
+    let (dyn_clip, rt) = spawn_clip_3(&mut commands, &mut meshes, &mut std_materials, &mut images);
     layer2.clip_layer.add_clip(3, dyn_clip, rt);
 
     spawn_clip_layer_bundle(&mut commands, layer0, 20);
@@ -179,7 +178,6 @@ fn spawn_clip_1(
     mut meshes: &mut ResMut<Assets<Mesh>>,
     mut materials: &mut ResMut<Assets<StandardMaterial>>,
     mut images: &mut ResMut<Assets<Image>>,
-    mut clip_visibility_layer_allocator: &mut ResMut<ClipVisibilityLayerAllocator>,
 ) -> (Entity, Handle<Image>) {
     let clip = Clip::new(
         "Clip 1".into(),
@@ -189,7 +187,6 @@ fn spawn_clip_1(
             height: 1080,
             ..default()
         },
-        &mut clip_visibility_layer_allocator,
     );
 
     // Render layer
@@ -248,7 +245,6 @@ fn spawn_clip_2(
     mut meshes: &mut ResMut<Assets<Mesh>>,
     mut materials: &mut ResMut<Assets<StandardMaterial>>,
     mut images: &mut ResMut<Assets<Image>>,
-    mut clip_visibility_layer_allocator: &mut ResMut<ClipVisibilityLayerAllocator>,
 ) -> (Entity, Handle<Image>) {
     let clip = Clip::new(
         "Another Clip".into(),
@@ -258,7 +254,6 @@ fn spawn_clip_2(
             height: 1080,
             ..default()
         },
-        clip_visibility_layer_allocator,
     );
 
     let rt = clip.render_target.clone();
@@ -321,7 +316,6 @@ fn spawn_clip_3(
     mut meshes: &mut ResMut<Assets<Mesh>>,
     mut materials: &mut ResMut<Assets<StandardMaterial>>,
     mut images: &mut ResMut<Assets<Image>>,
-    mut clip_visibility_layer_allocator: &mut ResMut<ClipVisibilityLayerAllocator>,
 ) -> (Entity, Handle<Image>) {
     let clip = Clip::new(
         "Torus".into(),
@@ -331,7 +325,6 @@ fn spawn_clip_3(
             height: 1080,
             ..default()
         },
-        clip_visibility_layer_allocator,
     );
 
     // Render layer

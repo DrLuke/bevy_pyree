@@ -4,62 +4,38 @@ use bevy::prelude::*;
 use crate::clip::Clip;
 use bevy_inspector_egui::Inspectable;
 
-/// A counter to help with getting a unique layer number for each ClipVisibilityLayer
-#[derive(Resource, Default)]
-pub struct ClipVisibilityLayerAllocator(usize);
-
-impl ClipVisibilityLayerAllocator {
-    /// Get a layer number that hasn't been used yet
-    pub fn get(&mut self) -> usize {
-        // We return the current number, but have to increment it first
-        let return_value = self.0;
-        self.0 += 1;
-        return_value
-    }
-}
-
-/// Stores which clip visibility layer an entity belongs to.
-/// The value must be the same as the parent clip entity's clip visibility layer.
-/// This Component is then compared to the clip visibility layer of the rendering camera, and
-/// sets the computed visibility to true if it is the same layer.
+/// Stores the clip a camera belongs to. This is used to determine the visibility of a clip.
 #[derive(Component, Inspectable)]
-pub struct ClipVisiblityLayer(usize);
+pub struct ClipCamera(Entity);
 
-/// Recursively climb up the ancestry tree of an entity until a clip is reached and
-/// return the clip visibility layer of that clip
-fn get_parent_clip(
+fn find_parent_clip(
     target: Entity,
-    clip_query: &Query<&Clip>,
-    parents: &Query<&Parent>,
-) -> Option<usize> {
-    for parent in parents.iter_ancestors(target) {
-        if let Ok(clip) = clip_query.get(parent) {
-            return Some(clip.get_clip_visibility_layer());
+    parent_query: &Query<&Parent>,
+    clip_query: &Query<Entity, With<Clip>>,
+) -> Option<Entity> {
+    for parent in parent_query.iter_ancestors(target) {
+        if let Ok(clip_entity) = clip_query.get(parent) {
+            return Some(clip_entity);
         }
-        if let Some(clip) = get_parent_clip(parent, clip_query, parents) {
-            return Some(clip);
+        if let Some(clip_entity) = find_parent_clip(parent, parent_query, clip_query) {
+            return Some(clip_entity);
         }
     }
 
     None
 }
 
-/// Automatically add `ClipVisiblityLayer` to new cameras and entities with visibility
-pub fn add_clip_visibility_layer(
-    clip_query: Query<&Clip>,
+/// Automatically add `ClipCamera` to new cameras that are children of a clip
+pub fn add_clip_camera_component(
+    clip_query: Query<Entity, With<Clip>>,
     parents: Query<&Parent>,
-    newly_added_entities: Query<Entity, (Added<ComputedVisibility>, Without<ClipVisiblityLayer>)>,
-    newly_added_cameras: Query<Entity, (Added<Camera>, Without<ClipVisiblityLayer>)>,
+    newly_added_cameras: Query<Entity, (Added<Camera>, Without<ClipCamera>)>,
     mut commands: Commands,
 ) {
-    for new in newly_added_entities.iter() {
-        if let Some(clip_visibility_layer) = get_parent_clip(new.clone(), &clip_query, &parents) {
-            commands.entity(new).insert(ClipVisiblityLayer(clip_visibility_layer));
-        }
-    }
-    for new in newly_added_cameras.iter() {
-        if let Some(clip_visibility_layer) = get_parent_clip(new.clone(), &clip_query, &parents) {
-            commands.entity(new).insert(ClipVisiblityLayer(clip_visibility_layer));
+    for camera_entity in newly_added_cameras.iter() {
+        let clip_entity_maybe = find_parent_clip(camera_entity, &parents, &clip_query);
+        if let Some(clip_entity) = clip_entity_maybe {
+            commands.entity(camera_entity).insert(ClipCamera(clip_entity));
         }
     }
 }

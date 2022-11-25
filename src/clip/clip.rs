@@ -1,6 +1,5 @@
 use bevy::prelude::*;
 use bevy::render::render_resource::{Extent3d, TextureDescriptor, TextureDimension, TextureFormat, TextureUsages};
-use crate::clip::visibility::ClipVisibilityLayerAllocator;
 use bevy_inspector_egui::Inspectable;
 
 
@@ -16,9 +15,6 @@ pub struct Clip {
     /// True if the clip is currently being used/displayed.
     /// Can be used by clip creators to, for example, stop expensive computations while the clip is not used.
     active: bool,
-    /// The clip visibility layer this clip is on.
-    /// This should be unique across all clips and is used to determine which entities will be rendered for this clip.
-    clip_visibility_layer: usize,
 }
 
 impl Clip {
@@ -26,7 +22,6 @@ impl Clip {
         display_name: String,
         images: &mut ResMut<Assets<Image>>,
         size: Extent3d,
-        clip_visibility_layer_allocator: &mut ResMut<ClipVisibilityLayerAllocator>,
     ) -> Self {
         // This is the texture that will be rendered to.
         let mut image = Image {
@@ -50,21 +45,18 @@ impl Clip {
         Self {
             display_name,
             render_target: image_handle,
-            active: true,
-            clip_visibility_layer: clip_visibility_layer_allocator.get()
+            active: true
         }
     }
 
     pub fn from_image(
         display_name: String,
         image: Handle<Image>,
-        clip_visibility_layer_allocator: &mut ResMut<ClipVisibilityLayerAllocator>,
     ) -> Self {
         Self {
             display_name,
             render_target: image,
             active: true,
-            clip_visibility_layer: clip_visibility_layer_allocator.get()
         }
     }
 
@@ -76,5 +68,4 @@ impl Clip {
     pub fn set_active(&mut self, active: bool) { self.active = active }
     pub fn activate(&mut self) { self.set_active(true) }
     pub fn deactivate(&mut self) { self.set_active(false) }
-    pub fn get_clip_visibility_layer(&self) -> usize { self.clip_visibility_layer }
 }
