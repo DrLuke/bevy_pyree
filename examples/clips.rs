@@ -181,7 +181,7 @@ fn spawn_clip_1(
 ) -> (Entity, Handle<Image>) {
     let clip = Clip::new(
         "Clip 1".into(),
-        images,
+        &mut images,
         Extent3d {
             width: 1920,
             height: 1080,
@@ -189,55 +189,54 @@ fn spawn_clip_1(
         },
     );
 
-    // Render layer
-    let rl = RenderLayers::layer(1);
-
-    // Just some geometry to display
-    let cube_handle = meshes.add(Mesh::from(shape::Cube { size: 4.0 }));
-    let cube_material_handle = materials.add(StandardMaterial {
-        base_color: Color::rgb(0.8, 0.15, 0.1),
-        reflectance: 0.02,
-        unlit: false,
-        ..default()
-    });
-
-    // The cube that will be rendered to the texture.
-    commands
-        .spawn_bundle(PbrBundle {
-            mesh: cube_handle,
-            material: cube_material_handle,
-            transform: Transform::from_translation(Vec3::new(0.0, 0.0, 1.0)),
-            ..default()
-        })
-        .insert(Clip1Cube)
-        .insert(rl);
-
-    // Light
-    // NOTE: Currently lights are shared between passes - see https://github.com/bevyengine/bevy/issues/3462
-    commands.spawn(PointLightBundle {
-        transform: Transform::from_translation(Vec3::new(0.0, 0.0, 10.0)),
-        ..default()
-    });
-
-    commands
-        .spawn(Camera3dBundle {
-            camera_3d: Camera3d {
-                clear_color: ClearColorConfig::Custom(Color::WHITE),
-                ..default()
-            },
-            camera: Camera {
-                priority: 0,
-                target: RenderTarget::Image(clip.render_target.clone()),
-                ..default()
-            },
-            transform: Transform::from_translation(Vec3::new(0.0, 0.0, 15.0))
-                .looking_at(Vec3::default(), Vec3::Y),
-            ..default()
-        })
-        .insert(rl);
-
     let rt = clip.render_target.clone();
-    (commands.spawn(clip).id(), rt)
+
+    let clip_id = commands.spawn((clip, TransformBundle::default(), VisibilityBundle::default()))
+        .with_children(|parent| {
+            // Just some geometry to display
+            let cube_handle = meshes.add(Mesh::from(shape::Cube { size: 4.0 }));
+            let cube_material_handle = materials.add(StandardMaterial {
+                base_color: Color::rgb(0.8, 0.15, 0.1),
+                reflectance: 0.02,
+                unlit: false,
+                ..default()
+            });
+
+            // The cube that will be rendered to the texture.
+            parent
+                .spawn(PbrBundle {
+                    mesh: cube_handle,
+                    material: cube_material_handle,
+                    transform: Transform::from_translation(Vec3::new(0.0, 0.0, 1.0)),
+                    ..default()
+                })
+                .insert(Clip1Cube);
+
+            // Light
+            // NOTE: Currently lights are shared between passes - see https://github.com/bevyengine/bevy/issues/3462
+            parent.spawn(PointLightBundle {
+                transform: Transform::from_translation(Vec3::new(0.0, 0.0, 10.0)),
+                ..default()
+            });
+
+            parent.spawn(Camera3dBundle {
+                camera_3d: Camera3d {
+                    clear_color: ClearColorConfig::Custom(Color::BLACK),
+                    ..default()
+                },
+                camera: Camera {
+                    priority: 0,
+                    target: RenderTarget::Image(rt.clone()),
+                    ..default()
+                },
+                transform: Transform::from_translation(Vec3::new(0.0, 0.0, 15.0))
+                    .looking_at(Vec3::default(), Vec3::Y),
+                ..default()
+            });
+        })
+        .id();
+
+    (clip_id, rt)
 }
 
 fn spawn_clip_2(
@@ -260,9 +259,6 @@ fn spawn_clip_2(
 
     let clip_id = commands.spawn((clip, TransformBundle::default(), VisibilityBundle::default()))
         .with_children(|parent| {
-            // Render layer
-            let rl = RenderLayers::layer(2);
-
             // Just some geometry to display
             let cube_handle = meshes.add(Mesh::from(shape::Cube { size: 4.0 }));
             let cube_material_handle = materials.add(StandardMaterial {
@@ -280,8 +276,7 @@ fn spawn_clip_2(
                     transform: Transform::from_translation(Vec3::new(0.0, 0.0, 1.0)),
                     ..default()
                 })
-                .insert(Clip2Cube)
-                .insert(rl);
+                .insert(Clip2Cube);
 
             // Light
             // NOTE: Currently lights are shared between passes - see https://github.com/bevyengine/bevy/issues/3462
@@ -303,8 +298,7 @@ fn spawn_clip_2(
                 transform: Transform::from_translation(Vec3::new(0.0, 0.0, 15.0))
                     .looking_at(Vec3::default(), Vec3::Y),
                 ..default()
-            })
-                .insert(rl);
+            });
         })
         .id();
 
@@ -327,60 +321,59 @@ fn spawn_clip_3(
         },
     );
 
-    // Render layer
-    let rl = RenderLayers::layer(3);
-
-    // Just some geometry to display
-    let cube_handle = meshes.add(Mesh::from(shape::Torus {
-        radius: 2.0,
-        ring_radius: 0.4,
-        subdivisions_segments: 10,
-        subdivisions_sides: 10,
-    }));
-    let cube_material_handle = materials.add(StandardMaterial {
-        base_color: Color::rgb(0.0, 0.1, 0.95),
-        reflectance: 0.02,
-        unlit: false,
-        ..default()
-    });
-
-    // The cube that will be rendered to the texture.
-    commands
-        .spawn_bundle(PbrBundle {
-            mesh: cube_handle,
-            material: cube_material_handle,
-            transform: Transform::from_translation(Vec3::new(0.0, 0.0, 1.0)),
-            ..default()
-        })
-        .insert(Clip3Cube)
-        .insert(rl);
-
-    // Light
-    // NOTE: Currently lights are shared between passes - see https://github.com/bevyengine/bevy/issues/3462
-    commands.spawn(PointLightBundle {
-        transform: Transform::from_translation(Vec3::new(0.0, 0.0, 10.0)),
-        ..default()
-    });
-
-    commands
-        .spawn(Camera3dBundle {
-            camera_3d: Camera3d {
-                clear_color: ClearColorConfig::Custom(Color::WHITE),
-                ..default()
-            },
-            camera: Camera {
-                priority: 0,
-                target: RenderTarget::Image(clip.render_target.clone()),
-                ..default()
-            },
-            transform: Transform::from_translation(Vec3::new(0.0, 0.0, 15.0))
-                .looking_at(Vec3::default(), Vec3::Y),
-            ..default()
-        })
-        .insert(rl);
-
     let rt = clip.render_target.clone();
-    (commands.spawn(clip).id(), rt)
+
+    let clip_id = commands.spawn((clip, TransformBundle::default(), VisibilityBundle::default()))
+        .with_children(|parent| {
+            // Just some geometry to display
+            let torus_handle = meshes.add(Mesh::from(shape::Torus {
+                radius: 2.0,
+                ring_radius: 0.4,
+                subdivisions_segments: 10,
+                subdivisions_sides: 10,
+            }));
+            let cube_material_handle = materials.add(StandardMaterial {
+                base_color: Color::rgb(0.0, 0.1, 0.95),
+                reflectance: 0.02,
+                unlit: false,
+                ..default()
+            });
+
+            // The cube that will be rendered to the texture.
+            parent
+                .spawn(PbrBundle {
+                    mesh: torus_handle,
+                    material: cube_material_handle,
+                    transform: Transform::from_translation(Vec3::new(0.0, 0.0, 1.0)),
+                    ..default()
+                })
+                .insert(Clip3Cube);
+
+            // Light
+            // NOTE: Currently lights are shared between passes - see https://github.com/bevyengine/bevy/issues/3462
+            parent.spawn(PointLightBundle {
+                transform: Transform::from_translation(Vec3::new(0.0, 0.0, 10.0)),
+                ..default()
+            });
+
+            parent.spawn(Camera3dBundle {
+                camera_3d: Camera3d {
+                    clear_color: ClearColorConfig::Custom(Color::BLACK),
+                    ..default()
+                },
+                camera: Camera {
+                    priority: 0,
+                    target: RenderTarget::Image(rt.clone()),
+                    ..default()
+                },
+                transform: Transform::from_translation(Vec3::new(0.0, 0.0, 15.0))
+                    .looking_at(Vec3::default(), Vec3::Y),
+                ..default()
+            });
+        })
+        .id();
+
+    (clip_id, rt)
 }
 
 fn setup(
