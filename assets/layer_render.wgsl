@@ -6,12 +6,13 @@ struct VertexOutput {
     @location(2) uv: vec2<f32>,
 };
 
-struct MyMat {
+struct Blend {
     blend: f32,
-};
+    blend_mode: f32, // See the BlendMode struct in clip/clip_layer.rs for the meaning
+}
 
 @group(1) @binding(0)
-var<uniform> uniform_data: MyMat;
+var<uniform> blend: Blend;
 @group(1) @binding(1)
 var texture_a: texture_2d<f32>;
 @group(1) @binding(2)
@@ -26,6 +27,27 @@ fn fragment(input: VertexOutput) -> @location(0) vec4<f32> {
     //var output_color = vec4<f32>(uniform_data.blend, sin(uniform_data.blend+input.uv.x*10.), 1.0, 1.0);
     // TODO: Figure out why uv coords are flipped
     var uv = vec2<f32>(1., 0.) + input.uv * vec2<f32>(-1., 1.);
-    var output_color = (1.-uniform_data.blend) * textureSample(texture_a, our_sampler_a, uv) + uniform_data.blend*textureSample(texture_b, our_sampler_b, uv);
+
+    var output_color = vec4<f32>(0.);
+    if (blend.blend_mode == 0.) { // Normal
+        output_color = textureSample(texture_b, our_sampler_b, uv) * blend.blend;
+    } else if (blend.blend_mode == 1.) { // Mix
+        output_color = mix(
+            textureSample(texture_a, our_sampler_a, uv),
+            textureSample(texture_b, our_sampler_b, uv),
+            blend.blend
+        );
+    } else if (blend.blend_mode == 2.) { // Multiply
+        output_color = textureSample(texture_a, our_sampler_a, uv) * textureSample(texture_b, our_sampler_b, uv);
+    } else if (blend.blend_mode == 3.) { // Screen
+        output_color = 1. - (1.-textureSample(texture_a, our_sampler_a, uv)) * (1.-textureSample(texture_b, our_sampler_b, uv));
+    } else if (blend.blend_mode == 4.) { // Add
+        output_color = textureSample(texture_a, our_sampler_a, uv) + textureSample(texture_b, our_sampler_b, uv) * blend.blend;
+    } else if (blend.blend_mode == 5.) { // Subtract
+        output_color = textureSample(texture_a, our_sampler_a, uv) - textureSample(texture_b, our_sampler_b, uv) * blend.blend;
+    } else if (blend.blend_mode == 6.) { // Difference
+        output_color = textureSample(texture_b, our_sampler_b, uv) - textureSample(texture_a, our_sampler_a, uv) * blend.blend;
+    }
+
     return output_color;
 }

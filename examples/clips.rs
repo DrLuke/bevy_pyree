@@ -12,7 +12,7 @@ use bevy::{
         view::RenderLayers,
     },
 };
-use bevy_pyree::clip::{Clip, ClipLayer, ClipLayerBundle, ClipLayerLastRenderTarget, ClipLayerMaterial, ClipRender, Deck2, Deck2Material, DeckRenderer, extract_deck2, ExtractedCrossfade, prepare_deck2, PyreeClipPlugin, setup_deck2, spawn_clip_layer_bundle};
+use bevy_pyree::clip::{BlendMode, Clip, ClipLayer, ClipLayerBundle, ClipLayerLastRenderTarget, ClipLayerMaterial, ClipRender, Deck2, Deck2Material, DeckRenderer, extract_deck2, ExtractedCrossfade, prepare_deck2, PyreeClipPlugin, setup_deck2, spawn_clip_layer_bundle};
 use bevy_pyree::clip::setup_clip_renderer;
 use bevy::render::camera::{Projection, ScalingMode};
 use bevy::render::{RenderApp, RenderStage};
@@ -25,7 +25,11 @@ use crate::egui::emath;
 
 fn main() {
     let mut app = App::new();
-    app.add_plugins(DefaultPlugins)
+    app.add_plugins(DefaultPlugins.set(AssetPlugin {
+        // Tell the asset server to watch for asset changes on disk:
+        watch_for_changes: true,
+        ..default()
+    }))
         .add_plugin(EguiPlugin)
         .add_plugin(MaterialPlugin::<Deck2Material>::default())
         .add_plugin(ExtractResourcePlugin::<ExtractedCrossfade>::default())
@@ -582,7 +586,22 @@ pub fn clip_layer_ui(
         }
 
         egui::Window::new(format!("Layer {}", cl.layer)).show(egui_context.ctx_mut(), |ui| {
-            ui.add(egui::Slider::new(&mut cl.blend, 0.0..=1.0).text("value"));
+            ui.add(egui::Slider::new(&mut cl.blend, 0.0..=1.0)
+                .text("value")
+                .clamp_to_range(false)
+            );
+            egui::ComboBox::from_label("Blend Mode")
+                .selected_text(format!("{:?}", cl.blend_mode))
+                .show_ui(ui, |ui| {
+                    ui.selectable_value(&mut cl.blend_mode, BlendMode::Normal, "Normal");
+                    ui.selectable_value(&mut cl.blend_mode, BlendMode::Mix, "Mix");
+                    ui.selectable_value(&mut cl.blend_mode, BlendMode::Multiply, "Multiply");
+                    ui.selectable_value(&mut cl.blend_mode, BlendMode::Screen, "Screen");
+                    ui.selectable_value(&mut cl.blend_mode, BlendMode::Add, "Add");
+                    ui.selectable_value(&mut cl.blend_mode, BlendMode::Subtract, "Subtract");
+                    ui.selectable_value(&mut cl.blend_mode, BlendMode::Difference, "Difference");
+                });
+
             for (i, id_maybe) in image_ids.iter().enumerate() {
                 if let Some(id) = id_maybe {
                     if ui.add(egui::widgets::ImageButton::new(

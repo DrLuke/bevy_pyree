@@ -2,6 +2,7 @@ use bevy::prelude::*;
 use bevy::render::camera::{Projection, RenderTarget, ScalingMode};
 use bevy::render::render_resource::Extent3d;
 use bevy::render::view::RenderLayers;
+use crate::clip::clip_layer::BlendMode;
 use crate::clip::clip_rendering::{ClipLayerMaterial, ClipLayerRenderTarget};
 use crate::clip::ClipLayer;
 
@@ -26,6 +27,7 @@ impl ClipLayerBundle {
             mesh: meshes.add(Mesh::from(shape::Plane { size: 2.0 })),
             material: materials.add(ClipLayerMaterial {
                 blend: 0.5,
+                blend_mode: 0.,
                 previous_rt: None,
                 clip_rt: None,
             }),

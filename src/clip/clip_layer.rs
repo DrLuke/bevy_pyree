@@ -1,5 +1,17 @@
 use bevy::prelude::*;
 
+#[derive(PartialEq, Debug, Clone)]
+pub enum BlendMode {
+    Normal, // f = b*x
+    Mix, // f = (1-x)*a + x*b
+    Multiply, // f = a*b
+    Screen, // f = 1 - (1-a)*(1-b)
+    Add, // f = a+b*x
+    Subtract, // f = a-b*x
+    Difference, // f = b-a*x
+}
+
+
 /// A Clip layer contains clips. One of those clips is active and selected to be displayed to the output at any given time
 #[derive(Component)]
 pub struct ClipLayer {
@@ -13,6 +25,8 @@ pub struct ClipLayer {
     active_clip: u8,
     /// How much this layer's clip is supposed to be blended into the output
     pub blend: f32,
+    /// How to blend
+    pub blend_mode: BlendMode,
 }
 
 impl ClipLayer {
@@ -23,6 +37,7 @@ impl ClipLayer {
             render_targets: vec![None; u8::MAX as usize],
             active_clip: 0,
             blend: 0.5,
+            blend_mode: BlendMode::Normal,
         }
     }
 
