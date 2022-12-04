@@ -20,6 +20,7 @@ use bevy::render::extract_resource::ExtractResourcePlugin;
 use bevy_egui::{egui, EguiContext, EguiPlugin};
 use bevy_egui::egui::TextureId;
 use bevy_inspector_egui::{RegisterInspectable, WorldInspectorPlugin};
+use bevy_rosc::BevyRoscPlugin;
 use crate::egui::emath;
 
 
@@ -37,6 +38,7 @@ fn main() {
         .add_plugin(WorldInspectorPlugin::default())
 
         .add_plugin(PyreeClipPlugin)
+        .add_plugin(BevyRoscPlugin::new("0.0.0.0:31337").unwrap())
 
         //.add_startup_system(spawn_clip_1)
         //.add_startup_system(spawn_clip_2)
@@ -54,6 +56,7 @@ fn main() {
         //.add_system(deck_gui)
 
         .add_startup_system(setup_deck2);
+
 
     app.sub_app_mut(RenderApp)
         .add_system_to_stage(RenderStage::Extract, extract_deck2)
