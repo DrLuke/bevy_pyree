@@ -12,8 +12,7 @@ use bevy::{
         view::RenderLayers,
     },
 };
-use bevy_pyree::clip::{BlendMode, Clip, ClipLayer, ClipLayerBundle, ClipLayerLastRenderTarget, ClipLayerMaterial, ClipRender, Deck2, Deck2Material, DeckRenderer, extract_deck2, ExtractedCrossfade, prepare_deck2, PyreeClipPlugin, setup_deck2, spawn_clip_layer_bundle};
-use bevy_pyree::clip::setup_clip_renderer;
+use bevy_pyree::clip::{BlendMode, Clip, ClipLayer, ClipLayerBundle, ClipLayerLastRenderTarget, ClipLayerMaterial, Deck2, Deck2Material, DeckRenderer, extract_deck2, ExtractedCrossfade, prepare_deck2, PyreeClipPlugin, setup_deck2, spawn_clip_layer_bundle};
 use bevy::render::camera::{Projection, ScalingMode};
 use bevy::render::{RenderApp, RenderStage};
 use bevy::render::extract_resource::ExtractResourcePlugin;
@@ -40,9 +39,6 @@ fn main() {
         .add_plugin(PyreeClipPlugin)
         .add_plugin(BevyRoscPlugin::new("0.0.0.0:31337").unwrap())
 
-        //.add_startup_system(spawn_clip_1)
-        //.add_startup_system(spawn_clip_2)
-        //.add_startup_system(spawn_clip_3)
         .add_startup_system(setup)
         .add_startup_system(image_clip)
         //.add_system(setup_clip_renderer)
@@ -50,10 +46,8 @@ fn main() {
         .add_system(rotator_system)
         .add_system(cube_rotator_system_also)
         //.add_system(clip_selector_gui)
-        .add_system(deck_system)
         .add_system(deck_crossfader)
         .add_system(clip_layer_ui)
-        //.add_system(deck_gui)
 
         .add_startup_system(setup_deck2);
 
@@ -127,9 +121,12 @@ pub fn image_clip(
     let clip = Clip::from_image("Clip3".into(), server.load("Clip9.png"));
     let rt = clip.render_target.clone();
     layer2.clip_layer.add_clip(2, commands.spawn(clip).id(), rt);
+    let clip = Clip::from_image("ColorPattern".into(), server.load("pattern.png"));
+    let rt = clip.render_target.clone();
+    layer2.clip_layer.add_clip(3, commands.spawn(clip).id(), rt);
 
     let (dyn_clip, rt) = spawn_clip_3(&mut commands, &mut meshes, &mut std_materials, &mut images);
-    layer2.clip_layer.add_clip(3, dyn_clip, rt);
+    layer2.clip_layer.add_clip(4, dyn_clip, rt);
 
     spawn_clip_layer_bundle(&mut commands, layer0, 20);
     spawn_clip_layer_bundle(&mut commands, layer1, 21);
@@ -269,7 +266,7 @@ fn spawn_clip_2(
             // Just some geometry to display
             let cube_handle = meshes.add(Mesh::from(shape::Cube { size: 4.0 }));
             let cube_material_handle = materials.add(StandardMaterial {
-                base_color: Color::rgb(0.1, 0.95, 0.05),
+                base_color: Color::rgb(1., 0.95, 1.),
                 reflectance: 0.02,
                 unlit: false,
                 ..default()
@@ -459,53 +456,6 @@ fn clip_selector_gui(
         });
     });
 }
-
-/*fn deck_gui(
-    deck: ResMut<Deck2>,
-    mut egui_context: ResMut<EguiContext>,
-    mut clip_render_query: Query<(Entity, &mut ClipRender)>,
-    clip_query: Query<&Clip>,
-    mut commands: Commands,
-    mut materials: ResMut<Assets<StandardMaterial>>,
-) {
-    let (entity, mut clip_render) = match clip_render_query.iter_mut().next() {
-        Some(c) => c,
-        None => {
-            egui::Window::new("Uh oh").show(egui_context.ctx_mut(), |ui| {
-                ui.label("No clip Renderer found");
-            });
-            return;
-        }
-    };
-
-    let mut set_clip = |clip: &Clip, commands: &mut Commands, materials: &mut ResMut<Assets<StandardMaterial>>| {
-        clip_render.image = clip.render_target.clone();
-        commands.entity(entity).remove::<Handle<StandardMaterial>>();
-        let material_handle = materials.add(StandardMaterial {
-            base_color_texture: Some(clip.render_target.clone()),
-            unlit: true,
-            ..default()
-        });
-        commands.entity(entity).insert(material_handle);
-    };
-
-    egui::Window::new("Deck").show(egui_context.ctx_mut(), |ui| {
-        egui::Grid::new("some_unique_id").show(ui, |ui| {
-            if ui.button("Deck A").clicked() {
-                if deck.slots[0].is_some() {
-                    set_clip(clip_query.get(deck.slots[0].unwrap()).unwrap(), &mut commands, &mut materials);
-                }
-            }
-            ui.label("Fader hier");
-            if ui.button("Deck B").clicked() {
-                if deck.slots[1].is_some() {
-                    set_clip(clip_query.get(deck.slots[1].unwrap()).unwrap(), &mut commands, &mut materials);
-                }
-            }
-            ui.end_row();
-        });
-    });
-}*/
 
 pub fn deck_crossfader(
     mut deck: ResMut<Deck2>,
