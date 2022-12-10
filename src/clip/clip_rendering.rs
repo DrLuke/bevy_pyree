@@ -5,8 +5,11 @@ use bevy::{
         render_resource::{AsBindGroup, ShaderRef},
     },
 };
-use bevy::render::render_resource::{Extent3d, TextureDescriptor, TextureDimension, TextureFormat, TextureUsages};
+use bevy::render::camera::ScalingMode;
+use bevy::render::render_resource::{Extent3d, Face, TextureDescriptor, TextureDimension, TextureFormat, TextureUsages};
+use bevy::render::view::RenderLayers;
 use crate::clip::{ClipLayer};
+use crate::clip::BlendMode::Normal;
 use crate::clip::clip_layer::BlendMode;
 
 /// A texture a layer render's into
@@ -21,6 +24,10 @@ pub struct ClipLayerRenderTarget {
 pub struct ClipLayerLastRenderTarget {
     pub render_target: Option<Handle<Image>>,
 }
+
+/// Marker component for the entity that renders the final render target to screen
+#[derive(Component)]
+pub struct FinalClipLayerRenderer;
 
 impl ClipLayerRenderTarget {
     pub fn new(
@@ -126,5 +133,52 @@ pub fn update_render_target_chain(
             prev_handle = Some(clt.render_target.clone());
         }
         last_rt.render_target = prev_handle;
+    }
+}
+
+
+/// Create a quad that renders the final render layer to window
+pub fn update_final_clip_renderer_system(
+    mut commands: Commands,
+    final_rt: Res<ClipLayerLastRenderTarget>,
+    mut materials: ResMut<Assets<ClipLayerMaterial>>,
+    mut meshes: ResMut<Assets<Mesh>>,
+    final_renderer_query: Query<Entity, With<FinalClipLayerRenderer>>,
+) {
+    if final_rt.is_changed() {
+        // Delete all existing final clip renderers
+        for entity in &final_renderer_query {
+            commands.entity(entity).despawn_recursive();
+        }
+
+        // Spawn new final clip renderer
+        let render_mesh = MaterialMeshBundle {
+            mesh: meshes.add(Mesh::from(shape::Plane { size: 2.0 })),
+            material: materials.add(ClipLayerMaterial {
+                blend: 1.0,
+                // BlendMode::Normal
+                blend_mode: 0.0,
+                clip_rt: final_rt.render_target.clone(),
+                previous_rt: None,
+            }
+            ),
+            ..default()
+        };
+        commands
+            .spawn((render_mesh, FinalClipLayerRenderer, RenderLayers::layer(31)))
+            .with_children(|child_builder| {
+                child_builder.spawn((RenderLayers::layer(31), Camera3dBundle {
+                    camera: Camera {
+                        priority: isize::MAX,
+                        ..default()
+                    },
+                    projection: Projection::Orthographic(OrthographicProjection {
+                        scaling_mode: ScalingMode::None,
+                        ..default()
+                    }),
+                    transform: Transform::from_translation(Vec3::new(0.0, 10.0, 0.0)).looking_at(Vec3::ZERO, Vec3::Z),
+                    ..default()
+                }));
+            });
     }
 }

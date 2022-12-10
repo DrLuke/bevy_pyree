@@ -12,4 +12,4 @@ pub use deck::*;
 pub use clip_layer::{ClipLayer, BlendMode};
 pub use plugin::PyreeClipPlugin;
 pub use bundles::{ClipLayerBundle, spawn_clip_layer_bundle};
-pub use clip_rendering::{ClipLayerMaterial, ClipLayerLastRenderTarget, update_clip_layer_blend, update_render_target_chain};
+pub use clip_rendering::{ClipLayerMaterial, ClipLayerLastRenderTarget, update_clip_layer_blend, update_render_target_chain, update_final_clip_renderer_system};

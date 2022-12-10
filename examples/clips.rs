@@ -46,7 +46,6 @@ fn main() {
         .add_system(rotator_system)
         .add_system(cube_rotator_system_also)
         //.add_system(clip_selector_gui)
-        .add_system(deck_crossfader)
         .add_system(clip_layer_ui)
 
         .add_startup_system(setup_deck2);
@@ -454,15 +453,6 @@ fn clip_selector_gui(
                 }
             }
         });
-    });
-}
-
-pub fn deck_crossfader(
-    mut deck: ResMut<Deck2>,
-    mut egui_context: ResMut<EguiContext>,
-) {
-    egui::Window::new("Crossfade").show(egui_context.ctx_mut(), |ui| {
-        ui.add(egui::Slider::new(&mut deck.crossfade, 0.0..=1.0).text("value"));
     });
 }
 
