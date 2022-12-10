@@ -28,12 +28,29 @@ impl FromStr for BlendMode {
     fn from_str(input: &str) -> Result<BlendMode, Self::Err> {
         match input {
             "normal" => Ok(BlendMode::Normal),
-            "mix" => Ok(BlendMode::Normal),
-            "multiply" => Ok(BlendMode::Normal),
-            "screen" => Ok(BlendMode::Normal),
-            "add" => Ok(BlendMode::Normal),
-            "subtract" => Ok(BlendMode::Normal),
-            "difference" => Ok(BlendMode::Normal),
+            "mix" => Ok(BlendMode::Mix),
+            "multiply" => Ok(BlendMode::Multiply),
+            "screen" => Ok(BlendMode::Screen),
+            "add" => Ok(BlendMode::Add),
+            "subtract" => Ok(BlendMode::Subtract),
+            "difference" => Ok(BlendMode::Difference),
+            _ => Err(()),
+        }
+    }
+}
+
+impl TryFrom<i32> for BlendMode {
+    type Error = ();
+
+    fn try_from(value: i32) -> Result<Self, Self::Error> {
+        match value {
+            0 => Ok(BlendMode::Normal),
+            1 => Ok(BlendMode::Mix),
+            2 => Ok(BlendMode::Multiply),
+            3 => Ok(BlendMode::Screen),
+            4 => Ok(BlendMode::Add),
+            5 => Ok(BlendMode::Subtract),
+            6 => Ok(BlendMode::Difference),
             _ => Err(()),
         }
     }
@@ -94,12 +111,19 @@ impl OscMethod for ClipLayer {
     }
 
     fn receive_message(&mut self, osc_message: rosc::OscMessage) {
+        debug!("Clip layer {} receives osc message: {:?}", self.layer, osc_message);
         let addr = osc_message.addr.clone();
         if addr.ends_with("/blend") && osc_message.args.len() == 1 {
             if let OscType::Float(blend) = osc_message.args[0] { self.blend = blend }
         } else if addr.ends_with("/blend_mode") && osc_message.args.len() == 1 {
             if let OscType::String(blend_mode) = &osc_message.args[0] {
                 if let Ok(new_blend_mode) = BlendMode::from_str(blend_mode.as_str()) {
+                    self.blend_mode = new_blend_mode;
+                } else {
+                    warn!("Clip Layer {} received unknown blend mode: {:?}", self.layer, blend_mode)
+                }
+            } else if let OscType::Int(blend_mode) = osc_message.args[0] {
+                if let Ok(new_blend_mode) = BlendMode::try_from(blend_mode) {
                     self.blend_mode = new_blend_mode;
                 } else {
                     warn!("Clip Layer {} received unknown blend mode: {:?}", self.layer, blend_mode)
