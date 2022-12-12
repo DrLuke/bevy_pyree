@@ -12,7 +12,7 @@ use bevy::{
         view::RenderLayers,
     },
 };
-use bevy_pyree::clip::{BlendMode, Clip, ClipLayer, ClipLayerBundle, ClipLayerLastRenderTarget, ClipLayerMaterial, Deck2, Deck2Material, DeckRenderer, extract_deck2, ExtractedCrossfade, prepare_deck2, PyreeClipPlugin, setup_deck2, spawn_clip_layer_bundle};
+use bevy_pyree::clip::{BlendMode, Clip, ClipLayer, ClipLayerBundle, ClipLayerLastRenderTarget, ClipLayerMaterial, ClipSelected, Deck2, Deck2Material, DeckRenderer, extract_deck2, ExtractedCrossfade, prepare_deck2, PyreeClipPlugin, setup_deck2, spawn_clip_layer_bundle};
 use bevy::render::camera::{Projection, ScalingMode};
 use bevy::render::{RenderApp, RenderStage};
 use bevy::render::extract_resource::ExtractResourcePlugin;
@@ -399,7 +399,7 @@ fn setup(
 }
 
 /// Rotates the inner cube (first pass)
-fn rotator_system(time: Res<Time>, mut query: Query<&mut Transform, With<Clip1Cube>>) {
+fn rotator_system(time: Res<Time>, mut query: Query<&mut Transform, (With<Clip1Cube>, With<ClipSelected>)>) {
     for mut transform in &mut query {
         transform.rotate_x(1.5 * time.delta_seconds());
         transform.rotate_z(1.3 * time.delta_seconds());
@@ -407,7 +407,7 @@ fn rotator_system(time: Res<Time>, mut query: Query<&mut Transform, With<Clip1Cu
 }
 
 /// Rotates the outer cube (main pass)
-fn cube_rotator_system(time: Res<Time>, mut query: Query<&mut Transform, With<Clip2Cube>>) {
+fn cube_rotator_system(time: Res<Time>, mut query: Query<&mut Transform, (With<Clip2Cube>, With<ClipSelected>)>) {
     for mut transform in &mut query {
         transform.rotate_x(1.0 * time.delta_seconds());
         transform.rotate_y(0.7 * time.delta_seconds());
@@ -415,7 +415,7 @@ fn cube_rotator_system(time: Res<Time>, mut query: Query<&mut Transform, With<Cl
 }
 
 /// Rotates the outer cube (main pass)
-fn cube_rotator_system_also(time: Res<Time>, mut query: Query<&mut Transform, With<Clip3Cube>>) {
+fn cube_rotator_system_also(time: Res<Time>, mut query: Query<&mut Transform, (With<Clip3Cube>, With<ClipSelected>)>) {
     for mut transform in &mut query {
         transform.rotate_x(1.01293192 * time.delta_seconds());
         transform.rotate_y(0.5341 * time.delta_seconds());

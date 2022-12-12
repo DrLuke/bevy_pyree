@@ -3,6 +3,8 @@ use bevy::prelude::*;
 use bevy_rosc::OscMethod;
 use rosc::address::OscAddress;
 use rosc::OscType;
+use crate::clip::Clip;
+use crate::clip::clip::ClipSelected;
 
 #[derive(PartialEq, Debug, Clone)]
 pub enum BlendMode {
@@ -98,7 +100,7 @@ impl ClipLayer {
     pub fn set_active_clip(&mut self, index: u8) { self.active_clip = index }
     pub fn get_active_clip(&self) -> u8 { self.active_clip }
     pub fn get_clips(&self) -> Vec<Option<Entity>> { self.clips.clone() }
-    pub fn get_render_targets(&self) -> Vec<Option<Handle<Image>>> { self.render_targets.iter().map(|x| x.clone()).collect() }
+    pub fn get_render_targets(&self) -> Vec<Option<Handle<Image>>> { self.render_targets.to_vec() }
 }
 
 impl OscMethod for ClipLayer {
@@ -139,5 +141,58 @@ impl OscMethod for ClipLayer {
         } else {
             warn!("Clip Layer {} received unprocessed OSC message: {:?}", self.layer, osc_message)
         }
+    }
+}
+
+/// Propagate selected clip component to clips and all child entities
+pub fn update_clip_selected_system(
+    mut commands: Commands,
+    clip_layer_query: Query<&ClipLayer, Changed<ClipLayer>>,
+    selected_clips_query: Query<Entity, (With<Clip>, With<ClipSelected>)>,
+    children_query: Query<&Children>,
+) {
+    for changed_clip_layer in &clip_layer_query {
+        // First get all selected clips that are part of this clip layer
+        let layer_clips: Vec<Option<Entity>> = changed_clip_layer.get_clips();
+        let active_clip = layer_clips[changed_clip_layer.get_active_clip() as usize];
+        let selected_layer_clips: Vec<Entity> = layer_clips.iter().filter_map(
+            |clip_entity| selected_clips_query.get((*clip_entity)?).ok()
+        ).collect();
+
+        // Remove the SelectedClip component from all clips except for the active clip
+        for selected_layer_clip in selected_layer_clips {
+            if Some(selected_layer_clip) != active_clip {
+                recursively_remove_clip_selected(&mut commands, &children_query, selected_layer_clip)
+            }
+        }
+        // Selected clip doesn't have the SelectedClip component yet, so add it recursively
+        if let Some(active_clip) = active_clip {
+            if !selected_clips_query.contains(active_clip) {
+                recursively_add_clip_selected(&mut commands, &children_query, active_clip)
+            }
+        }
+    }
+}
+
+
+fn recursively_remove_clip_selected(
+    commands: &mut Commands,
+    children_query: &Query<&Children>,
+    target: Entity,
+) {
+    commands.entity(target).remove::<ClipSelected>();
+    for child_entity in children_query.iter_descendants(target) {
+        recursively_remove_clip_selected(commands, children_query, child_entity);
+    }
+}
+
+fn recursively_add_clip_selected(
+    commands: &mut Commands,
+    children_query: &Query<&Children>,
+    target: Entity,
+) {
+    commands.entity(target).insert(ClipSelected);
+    for child_entity in children_query.iter_descendants(target) {
+        recursively_add_clip_selected(commands, children_query, child_entity);
     }
 }

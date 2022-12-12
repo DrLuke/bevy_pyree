@@ -9,6 +9,7 @@ use bevy_rosc::{BevyRoscPlugin, method_dispatcher_system};
 
 use crate::clip::clip_rendering::{ClipLayerMaterial, update_clip_layer_blend};
 use crate::clip::{Clip, ClipLayer, ClipLayerLastRenderTarget, update_final_clip_renderer_system, update_render_target_chain};
+use crate::clip::clip_layer::update_clip_selected_system;
 use crate::clip::visibility::{add_clip_camera_component_system, clip_visibility_system, ClipEntity};
 
 pub struct PyreeClipPlugin;
@@ -25,6 +26,7 @@ impl Plugin for PyreeClipPlugin {
             .add_system(update_final_clip_renderer_system)
             .add_system(add_clip_camera_component_system)
             //.add_system(add_visibility_to_clip_system)
+            .add_system(update_clip_selected_system)
 
             // Compute Clip visibility before visibility is propagated to child entities
             .add_system_to_stage(

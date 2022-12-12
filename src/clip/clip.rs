@@ -45,7 +45,7 @@ impl Clip {
         Self {
             display_name,
             render_target: image_handle,
-            active: true
+            active: true,
         }
     }
 
@@ -69,3 +69,8 @@ impl Clip {
     pub fn activate(&mut self) { self.set_active(true) }
     pub fn deactivate(&mut self) { self.set_active(false) }
 }
+
+/// Marker component to indicate that this clip or the entity belonging to a clip is currently selected
+/// And should render/run
+#[derive(Component)]
+pub struct ClipSelected;
