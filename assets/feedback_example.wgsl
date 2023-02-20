@@ -28,6 +28,6 @@ fn fragment(input: VertexOutput) -> @location(0) vec4<f32> {
 
     let fb_sample = textureSample(texture_a, our_sampler_a, input.uv*2.);
 
-    let output_color = vec4<f32>(circle, fb_sample.b*0.8, fb_sample.g*0.8 + fb_sample.r, 1.0);
+    let output_color = vec4<f32>(circle, fb_sample.b*0.8, (circle*dist*1.) + fb_sample.g*0.8 + fb_sample.r, 1.0);
     return output_color;
 }
