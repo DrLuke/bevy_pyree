@@ -9,12 +9,12 @@ license = "MIT OR Apache-2.0"
 [dependencies]
 bevy = { version = "0.9", default-features = false, features = [] }
 bevy_rosc = "0.5.0"
-bevy-inspector-egui = "0.14"
+bevy-inspector-egui = "0.17.0"
 rosc = "0.9.1"
 
 [dev-dependencies]
 bevy = { version = "0.9", default-features = true }
-bevy_egui = "0.17.1"
+bevy_egui = "0.19.0"
 
 [profile.dev.package."*"]
 opt-level = 3
