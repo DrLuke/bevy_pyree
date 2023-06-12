@@ -1,5 +1,4 @@
 mod clip;
-mod deck;
 mod clip_layer;
 mod clip_rendering;
 mod plugin;
@@ -7,8 +6,6 @@ mod bundles;
 mod visibility;
 
 pub use clip::{Clip, ClipSelected};
-pub use deck::Deck2;
-pub use deck::*;
 pub use clip_layer::{ClipLayer, BlendMode, update_clip_selected_system};
 pub use plugin::PyreeClipPlugin;
 pub use bundles::{ClipLayerBundle, spawn_clip_layer_bundle};

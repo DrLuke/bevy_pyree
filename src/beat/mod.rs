@@ -12,7 +12,7 @@ pub use plugin::OscBeatReceiverPlugin;
 #[derive(Resource, Default)]
 pub struct BeatCounter {
     // Counter is increased on every beat
-    count: u64,
+    pub count: u64,
 }
 
 impl BeatCounter {

@@ -1,6 +1,7 @@
+use bevy::core_pipeline::tonemapping::Tonemapping;
 use bevy::prelude::*;
 use bevy::render::camera::{RenderTarget, ScalingMode};
-use bevy::render::view::RenderLayers;
+use bevy::render::view::{ColorGrading, RenderLayers};
 
 /// Contains the render target for a fullscreen quad
 #[derive(Component)]
@@ -30,22 +31,23 @@ pub fn spawn_fs_quad<T: Material>(
             child_builder
                 .spawn(Camera3dBundle {
                     camera: Camera {
-                        priority: render_priority,
+                        order: render_priority,
                         target: RenderTarget::Image(rt_handle.clone()),
                         ..default()
                     },
                     projection: Projection::Orthographic(OrthographicProjection {
-                        scaling_mode: ScalingMode::None,
+                        scaling_mode: ScalingMode::Fixed {width:1., height:1.},
                         ..default()
                     }),
-                    transform: Transform::from_translation(Vec3::new(0.0, 10.0, 0.0))
-                        .looking_at(Vec3::default(), Vec3::Z),
+                    transform: Transform::from_translation(Vec3::new(0.0, 0.0, 1.0))
+                        .looking_at(Vec3::default(), Vec3::Y),
+                    tonemapping: Tonemapping::None,
                     ..default()
                 })
                 .insert(RenderLayers::layer(render_layer));
             child_builder
                 .spawn(MaterialMeshBundle {
-                    mesh: meshes.add(Mesh::from(shape::Plane { size: 2.0 })),
+                    mesh: meshes.add(Mesh::from(shape::Quad::default())),
                     material: material_handle,
                     ..default()
                 })

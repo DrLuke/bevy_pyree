@@ -1,3 +1,4 @@
+use bevy::core_pipeline::tonemapping::Tonemapping;
 use bevy::prelude::*;
 use bevy::render::camera::ScalingMode;
 use bevy::render::view::RenderLayers;
@@ -13,7 +14,7 @@ pub fn spawn_render_image_to_screen(
     render_layer: RenderLayers,
 ) -> Entity {
     let render_mesh = MaterialMeshBundle {
-        mesh: meshes.add(Mesh::from(shape::Plane { size: 2.0 })),
+        mesh: meshes.add(Mesh::from(shape::Quad::default())),
         material: materials.add(StandardMaterial {
             unlit: true,
             base_color_texture: Some(image_handle),
@@ -27,14 +28,15 @@ pub fn spawn_render_image_to_screen(
             child_builder.spawn((render_layer.clone(), render_mesh));
             child_builder.spawn((render_layer.clone(), Camera3dBundle {
                 camera: Camera {
-                    priority: isize::MAX,
+                    order: isize::MAX,
                     ..default()
                 },
                 projection: Projection::Orthographic(OrthographicProjection {
-                    scaling_mode: ScalingMode::None,
+                    scaling_mode: ScalingMode::Fixed {width: 1., height:1.},
                     ..default()
                 }),
-                transform: Transform::from_translation(Vec3::new(0.0, 1.0, 0.0)).looking_at(Vec3::ZERO, Vec3::Z),
+                transform: Transform::from_translation(Vec3::new(0.0, 0.0, 1.0)).looking_at(Vec3::ZERO, Vec3::Y),
+                tonemapping: Tonemapping::None,
                 ..default()
             }));
         })

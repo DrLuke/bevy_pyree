@@ -24,7 +24,7 @@ impl ClipLayerBundle {
         images: &mut ResMut<Assets<Image>>,
     ) -> Self {
         let render_mesh = MaterialMeshBundle {
-            mesh: meshes.add(Mesh::from(shape::Plane { size: 2.0 })),
+            mesh: meshes.add(Mesh::from(shape::Plane { size: 2.0, ..default() })),
             material: materials.add(ClipLayerMaterial {
                 blend: 0.5,
                 blend_mode: 0.,
@@ -58,14 +58,14 @@ pub fn spawn_clip_layer_bundle(
     )
         .insert(RenderLayers::layer(render_layer))
         .with_children(|child_builder| {
-            child_builder.spawn_bundle(Camera3dBundle {
+            child_builder.spawn(Camera3dBundle {
                 camera: Camera {
-                    priority: 100 + layer as isize,
+                    order: 100 + layer as isize,
                     target: RenderTarget::Image(render_target),
                     ..default()
                 },
                 projection: Projection::Orthographic(OrthographicProjection {
-                    scaling_mode: ScalingMode::None,
+                    scaling_mode: ScalingMode::Fixed {width: 1., height:1.},
                     ..default()
                 }),
                 transform: Transform::from_translation(Vec3::new(0.0, 10.0, 0.0)).looking_at(Vec3::default(), Vec3::Z),

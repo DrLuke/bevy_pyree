@@ -7,7 +7,8 @@ use bevy_inspector_egui::Inspectable;
 
 /// Stores the clip an entity belongs to.
 /// This is used to determine whether or not an entity should be visible for a given camera.
-#[derive(Component, Inspectable)]
+//#[derive(Component, Inspectable)]
+#[derive(Component)]
 pub struct ClipEntity(pub Entity);
 
 fn find_parent_clip(

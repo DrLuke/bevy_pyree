@@ -29,16 +29,15 @@ impl Plugin for PyreeClipPlugin {
             .add_system(update_clip_selected_system)
 
             // Compute Clip visibility before visibility is propagated to child entities
-            .add_system_to_stage(
-                CoreStage::PostUpdate,
+            .add_system(
                 clip_visibility_system.after(CheckVisibility),
             )
 
             // OSC stuff
             .add_system(method_dispatcher_system::<ClipLayer>)
 
-            .register_inspectable::<Clip>()
-            .register_inspectable::<ClipEntity>()
+            //.register_inspectable::<Clip>()
+            //.register_inspectable::<ClipEntity>()
         ;
     }
 }

@@ -6,7 +6,8 @@ use bevy_inspector_egui::Inspectable;
 /// A clip is something that contains a RenderTarget and some scene or video that is rendered
 /// into that RenderTarget. It's the first step of pixel generation in the VJ chain.
 /// The Clip is responsible for rendering stuff into the RenderTarget, preferrably using Layers
-#[derive(Component, Inspectable)]
+//#[derive(Component, Inspectable)]
+#[derive(Component)]
 pub struct Clip {
     /// Display name for this clip
     display_name: String,
@@ -35,6 +36,7 @@ impl Clip {
                 usage: TextureUsages::TEXTURE_BINDING
                     | TextureUsages::COPY_DST
                     | TextureUsages::RENDER_ATTACHMENT,
+                view_formats: &[]
             },
             ..default()
         };

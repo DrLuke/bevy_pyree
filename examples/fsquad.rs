@@ -1,5 +1,6 @@
 //! Full screen shader effect
 
+use std::time::Duration;
 use bevy::prelude::*;
 use bevy::render::render_resource::{AddressMode, Extent3d, SamplerDescriptor, TextureDescriptor, TextureDimension, TextureFormat, TextureUsages};
 use bevy::render::view::RenderLayers;
@@ -14,7 +15,7 @@ use bevy::{
     },
 };
 use bevy::render::texture::ImageSampler;
-use bevy::time::FixedTimestep;
+use bevy::time::common_conditions::on_timer;
 use bevy_pyree::beat::{BeatEvent, OscBeatReceiverPlugin};
 
 
@@ -24,8 +25,8 @@ fn main() {
         watch_for_changes: true,
         ..default()
     }))
-        .add_plugin(EguiPlugin)
-        .add_plugin(WorldInspectorPlugin::default())
+        //.add_plugin(EguiPlugin)
+        //.add_plugin(WorldInspectorPlugin::default())
         
         .add_plugin(MaterialPlugin::<MyExampleMaterial>::default())
 
@@ -33,11 +34,7 @@ fn main() {
         .add_system(beat_system)
         // Send out a beat event once a second
         .add_event::<BeatEvent>()
-        .add_system_set(
-            SystemSet::new()
-                .with_run_criteria(FixedTimestep::step(1.0))
-                .with_system(send_beat_event)
-        )
+        .add_system(send_beat_event.run_if(on_timer(Duration::from_secs(1))))
         // Uncomment this if you want to receive OSC beat events instead
         //.add_plugin(BevyRoscPlugin::new("0.0.0.0:31337").unwrap())
         //.add_plugin(OscBeatReceiverPlugin::default())
@@ -84,6 +81,7 @@ fn startup(
             usage: TextureUsages::TEXTURE_BINDING
                 | TextureUsages::COPY_DST
                 | TextureUsages::RENDER_ATTACHMENT,
+            view_formats: &[]
         },
         sampler_descriptor: ImageSampler::Descriptor(SamplerDescriptor {
             address_mode_u: AddressMode::Repeat,

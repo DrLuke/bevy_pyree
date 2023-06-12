@@ -45,6 +45,7 @@ impl ClipLayerRenderTarget {
                 usage: TextureUsages::TEXTURE_BINDING
                     | TextureUsages::COPY_DST
                     | TextureUsages::RENDER_ATTACHMENT,
+                view_formats: &[]
             },
             ..default()
         };
@@ -153,7 +154,7 @@ pub fn update_final_clip_renderer_system(
 
         // Spawn new final clip renderer
         let render_mesh = MaterialMeshBundle {
-            mesh: meshes.add(Mesh::from(shape::Plane { size: 2.0 })),
+            mesh: meshes.add(Mesh::from(shape::Plane { size: 2.0, ..default() })),
             material: materials.add(ClipLayerMaterial {
                 blend: 1.0,
                 // BlendMode::Normal
@@ -169,11 +170,11 @@ pub fn update_final_clip_renderer_system(
             .with_children(|child_builder| {
                 child_builder.spawn((RenderLayers::layer(31), Camera3dBundle {
                     camera: Camera {
-                        priority: isize::MAX,
+                        order: isize::MAX,
                         ..default()
                     },
                     projection: Projection::Orthographic(OrthographicProjection {
-                        scaling_mode: ScalingMode::None,
+                        scaling_mode: ScalingMode::Fixed {width: 1.0, height: 1.0},
                         ..default()
                     }),
                     transform: Transform::from_translation(Vec3::new(0.0, 10.0, 0.0)).looking_at(Vec3::ZERO, Vec3::Z),
